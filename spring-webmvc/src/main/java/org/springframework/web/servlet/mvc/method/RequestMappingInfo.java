@@ -55,21 +55,38 @@ import org.springframework.web.util.UrlPathHelper;
  */
 public final class RequestMappingInfo implements RequestCondition<RequestMappingInfo> {
 
+	/**
+	 * - 名字
+	 */
 	@Nullable
 	private final String name;
-
+	/**
+	 * - 请求路径的条件
+	 */
 	private final PatternsRequestCondition patternsCondition;
-
+	/**
+	 * - 请求方法的条件
+	 */
 	private final RequestMethodsRequestCondition methodsCondition;
-
+	/**
+	 * - 请求参数的条件
+	 */
 	private final ParamsRequestCondition paramsCondition;
-
+	/**
+	 * - 请求头的条件
+	 */
 	private final HeadersRequestCondition headersCondition;
-
+	/**
+	 * - 可消费的 Content-Type 的条件
+	 */
 	private final ConsumesRequestCondition consumesCondition;
-
+	/**
+	 * - 可生产的 Content-Type 的条件
+	 */
 	private final ProducesRequestCondition producesCondition;
-
+	/**
+	 * - 自定义的条件
+	 */
 	private final RequestConditionHolder customConditionHolder;
 
 
@@ -260,6 +277,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	public int compareTo(RequestMappingInfo other, HttpServletRequest request) {
 		int result;
 		// Automatic vs explicit HTTP HEAD mapping
+		// 针对 HEAD 请求方法，特殊处理
 		if (HttpMethod.HEAD.matches(request.getMethod())) {
 			result = this.methodsCondition.compareTo(other.getMethodsCondition(), request);
 			if (result != 0) {
