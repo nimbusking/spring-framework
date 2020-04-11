@@ -46,8 +46,7 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 
 	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
 
-	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
-			new ConcurrentHashMap<>(256);
+	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache = new ConcurrentHashMap<>(256);
 
 
 	/**
@@ -133,9 +132,12 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	 */
 	@Nullable
 	private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
+		// 优先从 argumentResolverCache 缓存中，获得 parameter 对应的 HandlerMethodArgumentResolver 对象
 		HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
 		if (result == null) {
+			// 获得不到，则遍历 argumentResolvers 数组，逐个判断是否支持。
 			for (HandlerMethodArgumentResolver resolver : this.argumentResolvers) {
+				// 如果支持，则添加到 argumentResolverCache 缓存中，并返回
 				if (resolver.supportsParameter(parameter)) {
 					result = resolver;
 					this.argumentResolverCache.put(parameter, result);

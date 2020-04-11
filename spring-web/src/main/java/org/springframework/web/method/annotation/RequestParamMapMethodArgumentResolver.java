@@ -103,7 +103,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				return result;
 			}
 		}
-
+		
 		else {
 			// Regular Map
 			Class<?> valueType = resolvableType.asMap().getGeneric(1).resolve();
@@ -125,6 +125,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				}
 				return new LinkedHashMap<>(0);
 			}
+			// 普通 Map 类型的处理
 			else {
 				Map<String, String[]> parameterMap = webRequest.getParameterMap();
 				Map<String, String> result = new LinkedHashMap<>(parameterMap.size());
