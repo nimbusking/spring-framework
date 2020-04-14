@@ -63,6 +63,9 @@ import org.springframework.web.util.WebUtils;
 public class CommonsMultipartResolver extends CommonsFileUploadSupport
 		implements MultipartResolver, ServletContextAware {
 
+	/**
+	 * - 是否延迟解析
+	 */
 	private boolean resolveLazily = false;
 
 
@@ -132,6 +135,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 			return new DefaultMultipartHttpServletRequest(request) {
 				@Override
 				protected void initializeMultipart() {
+					// 解析请求，获取文件、参数信息
 					MultipartParsingResult parsingResult = parseRequest(request);
 					setMultipartFiles(parsingResult.getMultipartFiles());
 					setMultipartParameters(parsingResult.getMultipartParameters());
@@ -140,6 +144,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 			};
 		}
 		else {
+			// 解析请求，获取文件、参数信息
 			MultipartParsingResult parsingResult = parseRequest(request);
 			return new DefaultMultipartHttpServletRequest(request, parsingResult.getMultipartFiles(),
 					parsingResult.getMultipartParameters(), parsingResult.getMultipartParameterContentTypes());
@@ -153,10 +158,14 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 	 * @throws MultipartException if multipart resolution failed.
 	 */
 	protected MultipartParsingResult parseRequest(HttpServletRequest request) throws MultipartException {
+		// 获取请求中的编码
 		String encoding = determineEncoding(request);
+		// 获取FileUpload对象
 		FileUpload fileUpload = prepareFileUpload(encoding);
 		try {
+			// 获取请求中的流数据
 			List<FileItem> fileItems = ((ServletFileUpload) fileUpload).parseRequest(request);
+			// 将这些流数据转换成MultipartParsingResult，包含CommonsMultipartFile、参数信息、Content-type
 			return parseFileItems(fileItems, encoding);
 		}
 		catch (FileUploadBase.SizeLimitExceededException ex) {
