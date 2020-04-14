@@ -144,7 +144,7 @@ public class HandlerExecutionChain {
 				HandlerInterceptor interceptor = interceptors[i];
 				// <3> 前置处理
 				if (!interceptor.preHandle(request, response, this.handler)) {
-					// <3.1> 触发已完成处理
+					// <3.1> 已完成处理 拦截器
 					triggerAfterCompletion(request, response, null);
 					// 返回 false ，前置处理失败
 					return false;
@@ -190,7 +190,7 @@ public class HandlerExecutionChain {
 			for (int i = this.interceptorIndex; i >= 0; i--) { // 倒序！！！
 				HandlerInterceptor interceptor = interceptors[i];
 				try {
-					// 已完成处理
+					// 已完成处理 拦截器
 					interceptor.afterCompletion(request, response, this.handler, ex);
 				}
 				catch (Throwable ex2) { // 注意，如果执行失败，仅仅会打印错误日志，不会结束循环

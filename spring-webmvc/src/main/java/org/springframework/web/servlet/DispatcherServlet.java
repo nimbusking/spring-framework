@@ -551,6 +551,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void initLocaleResolver(ApplicationContext context) {
 		try {
+			// 从上下文中获取Bean名称为'localeResolver'的对象
 			this.localeResolver = context.getBean(LOCALE_RESOLVER_BEAN_NAME, LocaleResolver.class);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Detected " + this.localeResolver);
@@ -561,6 +562,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// We need to use the default.
+			// 从配置文件中获取默认的{ link #org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver}
 			this.localeResolver = getDefaultStrategy(context, LocaleResolver.class);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No LocaleResolver '" + LOCALE_RESOLVER_BEAN_NAME +
@@ -1033,7 +1035,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
 
-		// <1>
+		// <1> 获取异步管理器
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
@@ -1058,10 +1060,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
-				// <4.1>
+				// <4.1> 处理有Last-Modified请求头的场景
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
-				if (isGet || "HEAD".equals(method)) {
+				if (isGet || "HEAD".equals(method)) { // 不清楚为什么要判断方法类型为'HEAD'
+					// 获取请求中服务器端最后被修改时间
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
 						return;
@@ -1069,6 +1072,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// <5> 前置处理 拦截器
+				// 注意：该方法如果有一个拦截器的前置处理返回false，则开始倒序触发所有的拦截器的 已完成处理
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
@@ -1077,12 +1081,12 @@ public class DispatcherServlet extends FrameworkServlet {
 				// <6> 真正的调用 handler 方法，并返回视图
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 				
-				// <7>
+				// <7> 如果是异步
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
-				// <8> 无视图的情况下设置默认视图
+				// <8> 无视图的情况下设置默认视图名称
 				applyDefaultViewName(processedRequest, mv);
 				// <9> 后置处理 拦截器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
@@ -1099,13 +1103,12 @@ public class DispatcherServlet extends FrameworkServlet {
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
-			// <12> 已完成 拦截器
+			// <12> 已完成处理 拦截器
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
-			// <12> 已完成 拦截器
-			triggerAfterCompletion(processedRequest, response, mappedHandler,
-					new NestedServletException("Handler processing failed", err));
+			// <12> 已完成处理 拦截器
+			triggerAfterCompletion(processedRequest, response, mappedHandler, new NestedServletException("Handler processing failed", err));
 		}
 		finally {
 			// <13.1> Asyn
@@ -1165,6 +1168,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Did the handler return a view to render?
+		// <3> 是否进行页面渲染
 		if (mv != null && !mv.wasCleared()) {
 			// <3.1> 渲染页面
 			render(mv, request, response);
@@ -1179,7 +1183,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		}
 
-		// <4>
+		// <4> 如果是异步
 		if (WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
 			// Concurrent handling started during a forward
 			return;
