@@ -155,6 +155,7 @@ public class DispatcherServletTests {
 
 	@Test
 	public void parameterizableViewController() throws Exception {
+		
 		MockHttpServletRequest request = new MockHttpServletRequest(getServletContext(), "GET", "/view.do");
 		request.addUserRole("role1");
 		MockHttpServletResponse response = new MockHttpServletResponse();

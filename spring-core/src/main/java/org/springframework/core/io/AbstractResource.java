@@ -50,13 +50,16 @@ public abstract class AbstractResource implements Resource {
 	 */
 	@Override
 	public boolean exists() {
+		// 判断文件是否存在，若判断过程产生异常（因为会调用SecurityManager来判断），就关闭对应的流
 		// Try file existence: can we find the file in the file system?
 		try {
+			// 基于 File 进行判断
 			return getFile().exists();
 		}
 		catch (IOException ex) {
 			// Fall back to stream existence: can we open the stream?
 			try {
+				// 基于 InputStream 进行判断
 				getInputStream().close();
 				return true;
 			}
@@ -146,7 +149,7 @@ public abstract class AbstractResource implements Resource {
 		InputStream is = getInputStream();
 		try {
 			long size = 0;
-			byte[] buf = new byte[256];
+			byte[] buf = new byte[256]; // 每次最多读取 256 字节
 			int read;
 			while ((read = is.read(buf)) != -1) {
 				size += read;
