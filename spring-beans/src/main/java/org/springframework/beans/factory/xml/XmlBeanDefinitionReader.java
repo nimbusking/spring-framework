@@ -115,6 +115,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private Class<? extends BeanDefinitionDocumentReader> documentReaderClass = DefaultBeanDefinitionDocumentReader.class;
 
+	/**
+	 * 解析过程中异常处理器
+	 */
 	private ProblemReporter problemReporter = new FailFastProblemReporter();
 
 	private ReaderEventListener eventListener = new EmptyReaderEventListener();
