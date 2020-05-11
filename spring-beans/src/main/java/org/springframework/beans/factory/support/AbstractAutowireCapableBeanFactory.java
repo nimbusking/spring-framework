@@ -1879,18 +1879,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected Object initializeBean(final String beanName, final Object bean, @Nullable RootBeanDefinition mbd) {
 		if (System.getSecurityManager() != null) { // 安全模式
-			// <1> 激活 Aware 方法，对特殊的 bean 处理：Aware、BeanClassLoaderAware、BeanFactoryAware
+			// <1> 激活 Aware 方法，对特殊的 bean 处理：BeanNameAware、BeanClassLoaderAware、BeanFactoryAware，执行他们对应的setXxx方法
 			AccessController.doPrivileged((PrivilegedAction<Object>) () -> { 
 				invokeAwareMethods(beanName, bean);
 				return null;
 			}, getAccessControlContext());
 		}
 		else {
-			// <1> 激活 Aware 方法，对特殊的 bean 处理：Aware、BeanClassLoaderAware、BeanFactoryAware
+			// <1> 激活 Aware 方法，对特殊的 bean 处理：BeanNameAware、BeanClassLoaderAware、BeanFactoryAware，执行他们对应的setXxx方法
 			invokeAwareMethods(beanName, bean);
 		}
 
-		// <2> 后处理器，before
+		// <2> 前处理器，before
+		// 这里在AbstractApplicationContext中的refresh()方法中调用prepareBeanFactory()方法进行准备工作时，
+		// 添加了一个ApplicationContextAwareProcessor后置处理器，
+		// 执行该处理器，会对以下几种Aware调用其setXxx方法：
+		// EnvironmentAware、EmbeddedValueResolverAware、ResourceLoaderAware、ApplicationEventPublisherAware、MessageSourceAware、ApplicationContextAware
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
@@ -1972,6 +1976,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (mbd != null && bean.getClass() != NullBean.class) {
+			// 判断是否指定了 init-method，
+	        // 如果指定了 init-method 则再调用制定的 init-method
 			String initMethodName = mbd.getInitMethodName();
 			if (StringUtils.hasLength(initMethodName) && !(isInitializingBean && "afterPropertiesSet".equals(initMethodName)) && !mbd.isExternallyManagedInitMethod(initMethodName)) {
 				// <2> 激活用户自定义的初始化方法
