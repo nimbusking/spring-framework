@@ -42,24 +42,31 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// 类型转换器
 	@Nullable
 	private volatile ConfigurableConversionService conversionService;
 
+	// 占位符处理器
 	@Nullable
 	private PropertyPlaceholderHelper nonStrictHelper;
 
 	@Nullable
 	private PropertyPlaceholderHelper strictHelper;
 
+	// 设置是否抛出异常
 	private boolean ignoreUnresolvableNestedPlaceholders = false;
 
+	// 占位符前缀
 	private String placeholderPrefix = SystemPropertyUtils.PLACEHOLDER_PREFIX;
 
+	// 占位符后缀
 	private String placeholderSuffix = SystemPropertyUtils.PLACEHOLDER_SUFFIX;
 
+	// 与默认值的分割
 	@Nullable
 	private String valueSeparator = SystemPropertyUtils.VALUE_SEPARATOR;
 
+	// 必须要有的字段值
 	private final Set<String> requiredProperties = new LinkedHashSet<>();
 
 
@@ -67,6 +74,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	public ConfigurableConversionService getConversionService() {
 		// Need to provide an independent DefaultConversionService, not the
 		// shared DefaultConversionService used by PropertySourcesPropertyResolver.
+		// 需要提供独立的DefaultConversionService，而不是PropertySourcesPropertyResolver 使用的共享DefaultConversionService
 		ConfigurableConversionService cs = this.conversionService;
 		if (cs == null) {
 			synchronized (this) {
