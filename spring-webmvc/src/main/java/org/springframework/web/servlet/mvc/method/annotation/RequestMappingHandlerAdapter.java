@@ -173,7 +173,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	private int cacheSecondsForSessionAttributeHandlers = 0;
 
 	/**
-	 * - 是否对相同 Session 加锁
+	 * 是否对相同 Session 加锁
 	 */
 	private boolean synchronizeOnSession = false;
 
@@ -590,7 +590,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			return;
 		}
 
-		// <1> 扫描 @ControllerAdvice 注解的 Bean 们，并将进行排序
+		// <1> 扫描 @ControllerAdvice 注解的 Bean 们，生成对应的 ControllerAdviceBean 对象，并将进行排序
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 		AnnotationAwareOrderComparator.sort(adviceBeans);
 
@@ -602,12 +602,14 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (beanType == null) {
 				throw new IllegalStateException("Unresolvable type for ControllerAdviceBean: " + adviceBean);
 			}
-			// <2.1> 扫描有 @ModelAttribute ，无 @RequestMapping 注解的方法，添加到 modelAttributeAdviceCache 中
+			// <2.1> 扫描有 `@ModelAttribute` ，无 `@RequestMapping` 注解的方法，添加到 `modelAttributeAdviceCache` 属性中
+			// 该类方法用于在执行方法前修改 Model 对象
 			Set<Method> attrMethods = MethodIntrospector.selectMethods(beanType, MODEL_ATTRIBUTE_METHODS);
 			if (!attrMethods.isEmpty()) {
 				this.modelAttributeAdviceCache.put(adviceBean, attrMethods);
 			}
-			// <2.2> 扫描有 @InitBinder 注解的方法，添加到 initBinderAdviceCache 中
+			// <2.2> 扫描有 `@InitBinder` 注解的方法，添加到 `initBinderAdviceCache` 属性中
+			// 该类方法用于在执行方法前初始化数据绑定器
 			Set<Method> binderMethods = MethodIntrospector.selectMethods(beanType, INIT_BINDER_METHODS);
 			if (!binderMethods.isEmpty()) {
 				this.initBinderAdviceCache.put(adviceBean, binderMethods);
@@ -618,7 +620,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 		}
 
-		// <2.3> 将 requestResponseBodyAdviceBeans 添加到 this.requestResponseBodyAdvice 属性种
+		// <3> 将 requestResponseBodyAdviceBeans 添加到 this.requestResponseBodyAdvice 属性种
 		if (!requestResponseBodyAdviceBeans.isEmpty()) {
 			this.requestResponseBodyAdvice.addAll(0, requestResponseBodyAdviceBeans);
 		}
@@ -792,7 +794,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	protected ModelAndView handleInternal(HttpServletRequest request, HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 
 		ModelAndView mav;
-		// <1> 校验请求(HttpMethod和Session的校验)
+		// <1> 校验请求（HttpMethod 和 Session 的校验）
 		checkRequest(request);
 
 		// <2> 调用 HandlerMethod 方法
@@ -892,11 +894,11 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 
-			// <6>
+			// <6> 创建 AsyncWebRequest 异步请求对象
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
 
-			// <7>
+			// <7> 创建 WebAsyncManager 异步请求管理器对象
 			WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 			asyncManager.setTaskExecutor(this.taskExecutor);
 			asyncManager.setAsyncWebRequest(asyncWebRequest);
@@ -1033,7 +1035,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}
-		// 情况二，如果 mavContainer 未处，则基于 `mavContainer` 生成 ModelAndView 对象
+		// 情况二，如果 mavContainer 未处理，则基于 `mavContainer` 生成 ModelAndView 对象
 		ModelMap model = mavContainer.getModel();
 		// 创建 ModelAndView 对象，并设置相关属性
 		ModelAndView mav = new ModelAndView(mavContainer.getViewName(), model, mavContainer.getStatus());

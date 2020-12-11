@@ -54,16 +54,16 @@ public class ExceptionHandlerMethodResolver {
 
 	
 	/**
-	 * - 已经映射的方法
+	 * 已经映射的方法
 	 *
-	 * - 在 {@link #ExceptionHandlerMethodResolver(Class)} 构造方法中初始化
+	 * 在 {@link #ExceptionHandlerMethodResolver(Class)} 构造方法中初始化
 	 */
 	private final Map<Class<? extends Throwable>, Method> mappedMethods = new HashMap<>(16);
 
 	/**
-	 * - 已经匹配的方法
+	 * 已经匹配的方法
 	 *
-	 * - 在 {@link #resolveMethod(Exception)} 方法中初始化
+	 * 在 {@link #resolveMethod(Exception)} 方法中初始化
 	 */
 	private final Map<Class<? extends Throwable>, Method> exceptionLookupCache = new ConcurrentReferenceHashMap<>(16);
 
@@ -132,7 +132,7 @@ public class ExceptionHandlerMethodResolver {
 	}
 
 	/**
-	 * - 获取到处理该异常的方法
+	 * 获取到处理该异常的方法
 	 * 
 	 * Find a {@link Method} to handle the given exception.
 	 * Use {@link ExceptionDepthComparator} if more than one match is found.

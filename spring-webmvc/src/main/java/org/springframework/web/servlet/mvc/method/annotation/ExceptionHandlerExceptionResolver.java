@@ -77,22 +77,40 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExceptionResolver
 		implements ApplicationContextAware, InitializingBean {
 
+	/**
+	 * 自定义的方法参数处理器
+	 */
 	@Nullable
 	private List<HandlerMethodArgumentResolver> customArgumentResolvers;
 
+	/**
+	 * 方法参数处理器组合
+	 */
 	@Nullable
 	private HandlerMethodArgumentResolverComposite argumentResolvers;
 
+	/**
+	 * 自定义的执行结果处理器
+	 */
 	@Nullable
 	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers;
 
+	/**
+	 * 执行结果处理器组合
+	 */
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
+	/**
+	 * HTTP 消息转换器
+	 */
 	private List<HttpMessageConverter<?>> messageConverters;
 
 	private ContentNegotiationManager contentNegotiationManager = new ContentNegotiationManager();
 
+	/**
+	 * 响应体的后置增强器
+	 */
 	private final List<Object> responseBodyAdvice = new ArrayList<>();
 
 	@Nullable
@@ -107,6 +125,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
 		stringHttpMessageConverter.setWriteAcceptCharset(false);  // see SPR-7316
 
+		// 初始化 messageConverters
 		this.messageConverters = new ArrayList<>();
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(stringHttpMessageConverter);
@@ -413,7 +432,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using @ExceptionHandler " + exceptionHandlerMethod);
 			}
-			// <2> 执行 ServletInvocableHandlerMethod 的调用
+			// <2> 执行处理该异常的方法 ServletInvocableHandlerMethod 的调用
 			Throwable cause = exception.getCause();
 			if (cause != null) {
 				// Expose cause as provided argument as well
@@ -435,21 +454,21 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			return null;
 		}
 
-		// <3.1> 如果 mavContainer 已处理，则返回 '空的' ModelAndView 对象。
+		// <3> 如果 mavContainer 已处理，则返回 '空的' ModelAndView 对象。
 		if (mavContainer.isRequestHandled()) {
 			return new ModelAndView();
 		}
-		// <3.2> 如果 mavContainer 未处，则基于 `mavContainer` 生成 ModelAndView 对象
+		// <4> 如果 mavContainer 未处，则基于 `mavContainer` 生成 ModelAndView 对象
 		else {
 			ModelMap model = mavContainer.getModel();
 			HttpStatus status = mavContainer.getStatus();
-			// <3.2.1> 创建 ModelAndView 对象，并设置相关属性
+			// <4.1> 创建 ModelAndView 对象，并设置相关属性
 			ModelAndView mav = new ModelAndView(mavContainer.getViewName(), model, status);
 			mav.setViewName(mavContainer.getViewName());
 			if (!mavContainer.isViewReference()) {
 				mav.setView((View) mavContainer.getView());
 			}
-			// <3.2.2>
+			// <4.2>
 			if (model instanceof RedirectAttributes) {
 				Map<String, ?> flashAttributes = ((RedirectAttributes) model).getFlashAttributes();
 				RequestContextUtils.getOutputFlashMap(request).putAll(flashAttributes);
@@ -487,9 +506,9 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				resolver = new ExceptionHandlerMethodResolver(handlerType);
 				this.exceptionHandlerCache.put(handlerType, resolver);
 			}
-			// 获得异常对应的 Method 方法
+			// 获得异常对应的 Method 处理方法
 			Method method = resolver.resolveMethod(exception);
-			// 如果获得到 Method 方法，则创建 ServletInvocableHandlerMethod 对象，并返回
+			// 如果获得该异常对应的 Method 处理方法，则创建 ServletInvocableHandlerMethod 对象，并返回
 			if (method != null) {
 				return new ServletInvocableHandlerMethod(handlerMethod.getBean(), method);
 			}
@@ -508,7 +527,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			if (advice.isApplicableToBeanType(handlerType)) {
 				// 获得 handlerType 对应的 ExceptionHandlerMethodResolver 对象
 				ExceptionHandlerMethodResolver resolver = entry.getValue();
-				// 获得异常对应的 Method 方法
+				// 获得异常对应的 Method 处理方法
 				Method method = resolver.resolveMethod(exception);
 				if (method != null) {
 					return new ServletInvocableHandlerMethod(advice.resolveBean(), method);

@@ -70,11 +70,11 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		// 如果无 @PathVariable 注解
+		// <1> 如果无 @PathVariable 注解
 		if (!parameter.hasParameterAnnotation(PathVariable.class)) {
 			return false;
 		}
-		// <x> Map 类型，有 @PathVariable 注解，但是有 name 属性
+		// <2> Map 类型，有 @PathVariable 注解，但是有 name 属性
 		if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 			PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
 			return (pathVariable != null && StringUtils.hasText(pathVariable.value()));
@@ -84,8 +84,10 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+		// 获得 @PathVariable 注解
 		PathVariable ann = parameter.getParameterAnnotation(PathVariable.class);
 		Assert.state(ann != null, "No PathVariable annotation");
+		// 创建 PathVariableNamedValueInfo 对象
 		return new PathVariableNamedValueInfo(ann);
 	}
 
@@ -113,7 +115,7 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 		String key = View.PATH_VARIABLES;
 		int scope = RequestAttributes.SCOPE_REQUEST;
 		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
-		// 如果不存在 pathVars ，则进行创建
+		// 如果不存在 pathVars，则进行创建
 		if (pathVars == null) {
 			pathVars = new HashMap<>();
 			request.setAttribute(key, pathVars, scope);

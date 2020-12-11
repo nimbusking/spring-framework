@@ -195,22 +195,22 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 		}
 		else {
 			body = value;
-			// 获取返回参数的类型(返回值body不为空则直接获取其类型，否则从入参returnType获取其返回值类型)
+			// 获取返回结果的类型（返回值 body 不为空则直接获取其类型，否则从返回结果类型 returnType 获取其返回值类型)
 			valueType = getReturnValueType(body, returnType);
 			// 获取泛型
 			targetType = GenericTypeResolver.resolveType(getGenericType(returnType), returnType.getContainingClass());
 		}
 
-		// <2> 是否为 Resource 类型。暂时无视，实际暂时没用到
+		// <2> 是否为 Resource 类型
 		if (isResourceType(value, returnType)) {
 			// 设置响应头 Accept-Ranges
 			outputMessage.getHeaders().set(HttpHeaders.ACCEPT_RANGES, "bytes");
-			// 数据不为空、请求头中的 Range 不为空、响应码为200
+			// 数据不为空、请求头中的 Range 不为空、响应码为 200
 			if (value != null && inputMessage.getHeaders().getFirst(HttpHeaders.RANGE) != null && outputMessage.getServletResponse().getStatus() == 200) {
 				Resource resource = (Resource) value;
 				try {
 					List<HttpRange> httpRanges = inputMessage.getHeaders().getRange();
-					// 设置响应码为206
+					// 断点续传，客户端已下载一部分数据，此时需要设置响应码为 206
 					outputMessage.getServletResponse().setStatus(HttpStatus.PARTIAL_CONTENT.value());
 					// 获取哪一段数据需返回
 					body = HttpRange.toResourceRegions(httpRanges, resource);
@@ -270,7 +270,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			// <3.2.6> 按照 MediaType 的 specificity 和 quality 排序
 			MediaType.sortBySpecificityAndQuality(mediaTypesToUse);
 
-			// <3.2.7> 选择其中一个最匹配的，主要考虑不包含通配符的。例如 application/json;q=0.8 。
+			// <3.2.7> 选择其中一个最匹配的，主要考虑不包含通配符的，例如 application/json;q=0.8
 			for (MediaType mediaType : mediaTypesToUse) {
 				if (mediaType.isConcrete()) {
 					selectedMediaType = mediaType;
@@ -290,21 +290,24 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 
 		// <4> 如果匹配到，则进行写入逻辑
 		if (selectedMediaType != null) {
-			// <4.1> 移除 quality 。例如，application/json;q=0.8 移除后为 application/json 。
+			// <4.1> 移除 quality 。例如，application/json;q=0.8 移除后为 application/json
 			selectedMediaType = selectedMediaType.removeQualityValue();
-			// <4.2> 遍历 messageConverters 数组，
+			// <4.2> 遍历 messageConverters 数组
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
 				// <4.3> 判断 HttpMessageConverter 是否支持转换目标类型
-				GenericHttpMessageConverter genericConverter = (converter instanceof GenericHttpMessageConverter ? (GenericHttpMessageConverter<?>) converter : null);
-				if (genericConverter != null ? ((GenericHttpMessageConverter) converter).canWrite(targetType, valueType, selectedMediaType) : converter.canWrite(valueType, selectedMediaType)) {
-					// <5.1> 如果有 RequestResponseBodyAdvice ，则可以对返回的结果，做修改。
+				GenericHttpMessageConverter genericConverter = (converter instanceof GenericHttpMessageConverter
+						? (GenericHttpMessageConverter<?>) converter : null);
+				if (genericConverter != null ?
+						((GenericHttpMessageConverter) converter).canWrite(targetType, valueType, selectedMediaType)
+						: converter.canWrite(valueType, selectedMediaType)) {
+					// <5.1> 如果有 RequestResponseBodyAdvice，则可能需要对返回的结果做修改
 					body = getAdvice().beforeBodyWrite(body, returnType, selectedMediaType, (Class<? extends HttpMessageConverter<?>>) converter.getClass(), inputMessage, outputMessage);
 					// <5.2> body 非空，则进行写入
 					if (body != null) {
 						// 打印日志
 						Object theBody = body; // 这个变量的用途是，打印是匿名类，需要有 final
 						LogFormatUtils.traceDebug(logger, traceOn -> "Writing [" + LogFormatUtils.formatValue(theBody, !traceOn) + "]");
-						// 添加 CONTENT_DISPOSITION 头。一般情况下用不到，暂时忽略
+						// 添加 CONTENT_DISPOSITION 头，一般情况下用不到
 						addContentDispositionHeader(inputMessage, outputMessage);
 						// <5.3> 写入内容
 						if (genericConverter != null) {
@@ -319,7 +322,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 							logger.debug("Nothing to write: null body");
 						}
 					}
-					// <5.4> return 返回。结果整个逻辑
+					// <5.4> return 返回，结束整个逻辑
 					return;
 				}
 			}
@@ -384,7 +387,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	protected List<MediaType> getProducibleMediaTypes(
 			HttpServletRequest request, Class<?> valueClass, @Nullable Type targetType) {
 		
-		 // 先从请求 PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE 属性种获得。该属性的来源是 @RequestMapping(producer = xxx) 。
+		// 先从请求 PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE 属性种获得。该属性的来源是 @RequestMapping(producer = xxx) 。
 		Set<MediaType> mediaTypes =(Set<MediaType>) request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 		// 如果非空，则使用该属性
 		if (!CollectionUtils.isEmpty(mediaTypes)) {

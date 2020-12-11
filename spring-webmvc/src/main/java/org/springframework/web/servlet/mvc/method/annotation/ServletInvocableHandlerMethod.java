@@ -63,7 +63,7 @@ import org.springframework.web.util.NestedServletException;
 public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 	private static final Method CALLABLE_METHOD = ClassUtils.getMethod(Callable.class, "call");
-
+	/** 返回结果处理器组合对象 */
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
@@ -101,29 +101,29 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
 
-		// <x> 执行调用
+		// <1> 执行调用
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
-		// 设置响应状态码
+		// <2> 设置响应状态码
 		setResponseStatus(webRequest);
 
-		// 设置 ModelAndViewContainer 为请求已处理，返回
-		if (returnValue == null) { // 返回 null
+		// <3> 设置 ModelAndViewContainer 为请求已处理，返回，和 @ResponseStatus 注解相关
+		if (returnValue == null) {
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
 				disableContentCachingIfNecessary(webRequest);
 				mavContainer.setRequestHandled(true);
 				return;
 			}
 		}
-		else if (StringUtils.hasText(getResponseStatusReason())) {  // 有 responseStatusReason
+		else if (StringUtils.hasText(getResponseStatusReason())) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
 
-		// 设置 ModelAndViewContainer 为请求未处理
+		// <4> 设置 ModelAndViewContainer 为请求未处理
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
-		// 处理返回值
 		try {
+			// <5> 处理返回值
 			this.returnValueHandlers.handleReturnValue(returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}
 		catch (Exception ex) {
@@ -138,8 +138,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * Set the response status according to the {@link ResponseStatus} annotation.
 	 */
 	private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
-		// 获得状态码。
-	    // 此处，想要非空，需要通过 @ResponseStatus 注解方法
+		// 获得状态码，和 @ResponseStatus 注解相关
 		HttpStatus status = getResponseStatus();
 		if (status == null) {
 			return;

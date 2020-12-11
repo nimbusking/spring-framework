@@ -61,7 +61,7 @@ import org.springframework.web.multipart.MultipartResolver;
 public class StandardServletMultipartResolver implements MultipartResolver {
 
 	/**
-	 * - 是否延迟解析
+	 * 是否延迟解析
 	 */
 	private boolean resolveLazily = false;
 
@@ -82,6 +82,7 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
+		// 请求的 Content-type 必须 multipart/ 开头
 		return StringUtils.startsWithIgnoreCase(request.getContentType(), "multipart/");
 	}
 

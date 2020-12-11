@@ -164,6 +164,7 @@ public class ModelAndViewContainer {
 	 * a method argument) and {@code ignoreDefaultModelOnRedirect=false}.
 	 */
 	public ModelMap getModel() {
+		// 是否使用默认 Model
 		if (useDefaultModel()) {
 			return this.defaultModel;
 		}

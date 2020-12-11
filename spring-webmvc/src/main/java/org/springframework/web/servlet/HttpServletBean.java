@@ -88,6 +88,11 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	@Nullable
 	private ConfigurableEnvironment environment;
 
+	/**
+	 * 必须配置的属性的集合，默认为空
+	 *
+	 * 在 {@link ServletConfigPropertyValues} 中，会校验是否有对应的属性
+	 */
 	private final Set<String> requiredProperties = new HashSet<>(4);
 
 
@@ -105,6 +110,8 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	}
 
 	/**
+	 * 实现了 EnvironmentAware 接口，自动注入 Environment 对象
+	 *
 	 * Set the {@code Environment} that this servlet runs in.
 	 * <p>Any environment set here overrides the {@link StandardServletEnvironment}
 	 * provided by default.
@@ -118,6 +125,8 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	}
 
 	/**
+	 * 实现了 EnvironmentAware 接口，返回 Environment 对象
+	 *
 	 * Return the {@link Environment} associated with this servlet.
 	 * <p>If none specified, a default environment will be initialized via
 	 * {@link #createEnvironment()}.
@@ -125,6 +134,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	@Override
 	public ConfigurableEnvironment getEnvironment() {
 		if (this.environment == null) {
+			// 如果 Environment 为空，则创建 StandardServletEnvironment 对象
 			this.environment = createEnvironment();
 		}
 		return this.environment;
@@ -158,7 +168,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 				// <2.2> 注册自定义属性编辑器，一旦碰到 Resource 类型的属性，将会使用 ResourceEditor 进行解析
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
-				// <2.3> 空实现，留给子类覆盖
+				// <2.3> 空实现，留给子类覆盖，目前没有子类实现
 				initBeanWrapper(bw);
 				// <2.4> 以 Spring 的方式来将 pvs 注入到该 BeanWrapper 对象中
 				bw.setPropertyValues(pvs, true);
@@ -172,6 +182,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// 交由子类去实现，查看 FrameworkServlet#initServletBean() 方法
 		initServletBean();
 	}
 

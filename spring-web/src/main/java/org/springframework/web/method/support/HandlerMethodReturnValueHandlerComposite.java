@@ -38,6 +38,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/** HandlerMethodReturnValueHandler 数组 */
 	private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
 
 

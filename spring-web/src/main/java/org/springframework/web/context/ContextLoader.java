@@ -286,7 +286,7 @@ public class ContextLoader {
 			// <4> 如果是 ConfigurableWebApplicationContext 的子类，如果未刷新，则进行配置和刷新
 			if (this.context instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) this.context;
-				if (!cwac.isActive()) { // <4.1> 未刷新( 激活 )
+				if (!cwac.isActive()) { // <4.1> 未刷新（激活）
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
 					if (cwac.getParent() == null) { // <4.2> 无父容器，则进行加载和设置。
@@ -311,13 +311,12 @@ public class ContextLoader {
 				currentContextPerThread.put(ccl, this.context);
 			}
 
-			// <7> 打印日志
 			if (logger.isInfoEnabled()) {
 				long elapsedTime = System.currentTimeMillis() - startTime;
 				logger.info("Root WebApplicationContext initialized in " + elapsedTime + " ms");
 			}
 
-			// <8> 返回 context
+			// <7> 返回 context
 			return this.context;
 		}
 		catch (RuntimeException | Error ex) {
@@ -417,8 +416,9 @@ public class ContextLoader {
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
 
+		// <4> 对 context 进行定制化处理
 		customizeContext(sc, wac);
-		// 刷新 context ，执行初始化
+		// <5> 刷新 context ，执行初始化
 		wac.refresh();
 	}
 

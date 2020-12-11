@@ -59,32 +59,32 @@ public class DefaultRequestToViewNameTranslator implements RequestToViewNameTran
 	private static final String SLASH = "/";
 
 	/**
-	 * - 前缀
+	 * 前缀
 	 */
 	private String prefix = "";
 
 	/**
-	 * - 后缀
+	 * 后缀
 	 */
 	private String suffix = "";
 
 	/**
-	 * - 分隔符
+	 * 分隔符
 	 */
 	private String separator = SLASH;
 
 	/**
-	 * - 是否移除开头 {@link #SLASH}
+	 * 是否移除开头 {@link #SLASH}
 	 */
 	private boolean stripLeadingSlash = true;
 
 	/**
-	 * - 是否移除末尾 {@link #SLASH}
+	 * 是否移除末尾 {@link #SLASH}
 	 */
 	private boolean stripTrailingSlash = true;
 
 	/**
-	 * - 是否移除拓展名
+	 * 是否移除拓展名
 	 */
 	private boolean stripExtension = true;
 

@@ -35,6 +35,7 @@ import org.springframework.web.servlet.support.WebContentGenerator;
  */
 public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator implements HandlerAdapter, Ordered {
 
+	/** 最低优先级 */
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
 

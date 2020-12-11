@@ -71,7 +71,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	private final BeanExpressionContext expressionContext;
 
 	/**
-	 * MethodParameter 和 NamedValueInfo 的映射，作为缓存。
+	 * MethodParameter 和 NamedValueInfo 的映射，作为缓存
 	 */
 	private final Map<MethodParameter, NamedValueInfo> namedValueInfoCache = new ConcurrentHashMap<>(256);
 
@@ -101,12 +101,13 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 
 		// <1> 获得方法参数对应的 NamedValueInfo 对象。
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
-		// <2> 如果 parameter 是内嵌类型的，则获取内嵌的参数。否则，还是使用 parameter 自身
+		// <2> 如果 parameter 是内嵌类型（Optional 类型）的，则获取内嵌的参数。否则，还是使用 parameter 自身
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
 
 		// <3> 如果 name 是占位符，则进行解析成对应的值
 		Object resolvedName = resolveStringValue(namedValueInfo.name);
-		if (resolvedName == null) { // 如果解析不到，则抛出 IllegalArgumentException 异常
+		if (resolvedName == null) {
+			// 如果解析不到，则抛出 IllegalArgumentException 异常
 			throw new IllegalArgumentException(
 					"Specified name must not resolve to null: [" + namedValueInfo.name + "]");
 		}
@@ -115,10 +116,12 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		Object arg = resolveName(resolvedName.toString(), nestedParameter, webRequest);
 		// <5> 如果 arg 不存在，则使用默认值
 		if (arg == null) {
-			if (namedValueInfo.defaultValue != null) { // <5.1> 使用默认值
+			// <5.1> 使用默认值
+			if (namedValueInfo.defaultValue != null) {
 				arg = resolveStringValue(namedValueInfo.defaultValue);
 			}
-			else if (namedValueInfo.required && !nestedParameter.isOptional()) { // <5.2> 如果是必填，则处理参数缺失的情况
+			// <5.2> 如果是必填，则处理参数缺失的情况
+			else if (namedValueInfo.required && !nestedParameter.isOptional()) {
 				handleMissingValue(namedValueInfo.name, nestedParameter, webRequest);
 			}
 			// <5.3> 处理空值的情况
@@ -129,7 +132,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 			arg = resolveStringValue(namedValueInfo.defaultValue);
 		}
 
-		// <7> 执行值的类型转换
+		// <7> 数据绑定相关
 		if (binderFactory != null) {
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {

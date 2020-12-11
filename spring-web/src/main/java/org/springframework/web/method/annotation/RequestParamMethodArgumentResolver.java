@@ -80,7 +80,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	private static final TypeDescriptor STRING_TYPE_DESCRIPTOR = TypeDescriptor.valueOf(String.class);
 
 	/**
-	 * 是否使用默认解决。
+	 * 是否使用默认解决
 	 *
 	 * 这个变量有点绕，见 {@link #supportsParameter(MethodParameter)} 方法
 	 */
@@ -129,14 +129,15 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		// 有 @RequestParam 注解的情况
+		// <3> 有 @RequestParam 注解的情况
 		if (parameter.hasParameterAnnotation(RequestParam.class)) {
-			// <3> 如果是 Map 类型，则 @RequestParam 注解必须要有 name 属性
+			// <3.1> 如果是 Map 类型，则 @RequestParam 注解必须要有 name 属性
 			if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 				RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
 				return (requestParam != null && StringUtils.hasText(requestParam.name()));
 			}
 			else {
+				// <3.2> 否则返回 true
 				return true;
 			}
 		}

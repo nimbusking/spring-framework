@@ -64,10 +64,9 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 		implements MultipartResolver, ServletContextAware {
 
 	/**
-	 * - 是否延迟解析
+	 * 是否延迟解析
 	 */
 	private boolean resolveLazily = false;
-
 
 	/**
 	 * Constructor for use as bean. Determines the servlet container's
@@ -125,6 +124,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
+		// 必须是 POST 请求，且 Content-Type 为 multipart/ 开头
 		return ServletFileUpload.isMultipartContent(request);
 	}
 
@@ -160,12 +160,12 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 	protected MultipartParsingResult parseRequest(HttpServletRequest request) throws MultipartException {
 		// 获取请求中的编码
 		String encoding = determineEncoding(request);
-		// 获取FileUpload对象
+		// 获取 ServletFileUpload 对象
 		FileUpload fileUpload = prepareFileUpload(encoding);
 		try {
 			// 获取请求中的流数据
 			List<FileItem> fileItems = ((ServletFileUpload) fileUpload).parseRequest(request);
-			// 将这些流数据转换成MultipartParsingResult，包含CommonsMultipartFile、参数信息、Content-type
+			// 将这些流数据转换成 MultipartParsingResult，包含 CommonsMultipartFile、参数信息、Content-type
 			return parseFileItems(fileItems, encoding);
 		}
 		catch (FileUploadBase.SizeLimitExceededException ex) {

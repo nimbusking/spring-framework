@@ -74,6 +74,9 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Nullable
 	private StringValueResolver embeddedValueResolver;
 
+	/**
+	 * RequestMappingInfo 的构建器
+	 */
 	private RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
 
 
@@ -205,7 +208,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
-		// 判断是否有 @Controller 或者 @RequestMapping 相关的注解
+		// 判断是否有 @Controller 或者 @RequestMapping 的注解
 		return (AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) ||
 				AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class));
 	}
@@ -343,18 +346,18 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 
 	@Override
 	public RequestMatchResult match(HttpServletRequest request, String pattern) {
-		// 创建 RequestMappingInfo 对象
+		// <1> 为 `pattern` 创建一个 RequestMappingInfo 对象
 		RequestMappingInfo info = RequestMappingInfo.paths(pattern).options(this.config).build();
-		// 获得匹配的 RequestMappingInfo 对象
+		// <2> 获得请求对应的 RequestMappingInfo 对象
 		RequestMappingInfo matchingInfo = info.getMatchingCondition(request);
-		if (matchingInfo == null) { // 不匹配
+		if (matchingInfo == null) { // <3> 没有匹配的 RequestMappingInfo 对象返回空
 			return null;
 		}
-		// 获得请求路径的集合
+		// <4> 获得请求匹配到的路径
 		Set<String> patterns = matchingInfo.getPatternsCondition().getPatterns();
-		// 获得请求的路径
+		// <5> 获取请求路径
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
-		// 创建 RequestMatchResult 结果
+		// <6> 创建 RequestMatchResult 结果
 		return new RequestMatchResult(patterns.iterator().next(), lookupPath, getPathMatcher());
 	}
 

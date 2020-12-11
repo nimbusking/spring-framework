@@ -54,6 +54,9 @@ import org.springframework.web.servlet.ViewResolver;
  */
 public class BeanNameViewResolver extends WebApplicationObjectSupport implements ViewResolver, Ordered {
 
+	/**
+	 * 顺序，优先级最低
+	 */
 	private int order = Ordered.LOWEST_PRECEDENCE;  // default: same as non-Ordered
 
 

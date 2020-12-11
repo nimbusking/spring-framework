@@ -41,14 +41,30 @@ public class HandlerExecutionChain {
 
 	private static final Log logger = LogFactory.getLog(HandlerExecutionChain.class);
 
+	/**
+	 * 处理器
+	 */
 	private final Object handler;
 
+	/**
+	 * 拦截器数组
+	 */
 	@Nullable
 	private HandlerInterceptor[] interceptors;
 
+	/**
+	 * 拦截器数组。
+	 *
+	 * 在实际使用时，会调用 {@link #getInterceptors()} 方法，初始化到 {@link #interceptors} 中
+	 */
 	@Nullable
 	private List<HandlerInterceptor> interceptorList;
 
+	/**
+	 * 已成功执行 {@link HandlerInterceptor#preHandle(HttpServletRequest, HttpServletResponse, Object)} 的位置
+	 *
+	 * 在 {@link #applyPostHandle} 和 {@link #triggerAfterCompletion} 方法中需要用到，用于倒序执行拦截器的方法
+	 */
 	private int interceptorIndex = -1;
 
 
@@ -71,7 +87,9 @@ public class HandlerExecutionChain {
 			HandlerExecutionChain originalChain = (HandlerExecutionChain) handler;
 			this.handler = originalChain.getHandler();
 			this.interceptorList = new ArrayList<>();
+			// 将原始的 HandlerExecutionChain 的 interceptors 复制到 this.interceptorList 中
 			CollectionUtils.mergeArrayIntoCollection(originalChain.getInterceptors(), this.interceptorList);
+			// 将入参的 interceptors 合并到 this.interceptorList 中
 			CollectionUtils.mergeArrayIntoCollection(interceptors, this.interceptorList);
 		}
 		else {

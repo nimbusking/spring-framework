@@ -183,7 +183,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Nullable
 	private String namespace;
 
-	/** Explicit context config location. */
+	/** Explicit context config location. 配置文件的地址 */
 	@Nullable
 	private String contextConfigLocation;
 
@@ -220,7 +220,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	/** If the WebApplicationContext was injected via {@link #setApplicationContext}. */
 	private boolean webApplicationContextInjected = false;
 
-	/** Flag used to detect whether onRefresh has already been called. */
+	/**
+	 * Flag used to detect whether onRefresh has already been called.
+	 *
+	 * 标记是否接收到 ContextRefreshedEvent 事件。即 {@link #onApplicationEvent(ContextRefreshedEvent)}
+	 */
 	private volatile boolean refreshEventReceived = false;
 
 	/** Monitor for synchronized onRefresh execution. */
@@ -529,7 +533,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		try {
 			// 初始化 WebApplicationContext 对象
 			this.webApplicationContext = initWebApplicationContext();
-			// 空实现。子类有需要，可以实现该方法，实现自定义逻辑
+			// 空实现，留给子类覆盖，目前没有子类实现
 			initFrameworkServlet();
 		}
 		catch (ServletException | RuntimeException ex) {
@@ -562,6 +566,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected WebApplicationContext initWebApplicationContext() {
 		// <1> 获得根 WebApplicationContext 对象
 		WebApplicationContext rootContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		// <2> 获得 WebApplicationContext wac 对象
 		WebApplicationContext wac = null;
 
 		// 第一种情况，如果构造方法已经传入 webApplicationContext 属性，则直接使用
@@ -861,8 +866,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @param event the incoming ApplicationContext event
 	 */
 	public void onApplicationEvent(ContextRefreshedEvent event) {
+		// 标记 refreshEventReceived 为 true
 		this.refreshEventReceived = true;
 		synchronized (this.onRefreshMonitor) {
+			// 处理事件中的 ApplicationContext 对象，空实现，子类 DispatcherServlet 会实现
 			onRefresh(event.getApplicationContext());
 		}
 	}
@@ -905,7 +912,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
 			processRequest(request, response);
 		}
-		// <2.1> 处理 PATCH 请求
+		// <2.2> 处理其他类型的请求
 		else {
 			super.service(request, response);
 		}
@@ -968,7 +975,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		// 如果 dispatchOptionsRequest 为 true ，则处理该请求
+		// 如果 dispatchOptionsRequest 为 true ，则处理该请求，默认为 true
 		if (this.dispatchOptionsRequest || CorsUtils.isPreFlightRequest(request)) {
 			// 处理请求
 			processRequest(request, response);
@@ -1001,7 +1008,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		// 如果 dispatchTraceRequest 为 true ，则处理该请求
+		// 如果 dispatchTraceRequest 为 true ，则处理该请求，默认为 false
 		if (this.dispatchTraceRequest) {
 			// 处理请求
 			processRequest(request, response);
@@ -1023,24 +1030,24 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		// <1> 记录当前时间，用于计算 web 请求的处理时间
+		// <1> 记录当前时间，用于计算处理请求花费的时间
 		long startTime = System.currentTimeMillis();
-		// <2> 记录异常
+		// <2> 记录异常，用于保存处理请求过程中发送的异常
 		Throwable failureCause = null;
 
-		// <3>
+		// <3> TODO
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
 
-		// <4>
+		// <4> TODO
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 
-		// <5>
+		// <5> TODO
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
 
-		// <6>
+		// <6> TODO
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
@@ -1048,24 +1055,24 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
-			failureCause = ex; // <8>
+			failureCause = ex; // <8> 记录抛出的异常
 			throw ex;
 		}
 		catch (Throwable ex) {
-			failureCause = ex; // <8>
+			failureCause = ex; // <8> 记录抛出的异常
 			throw new NestedServletException("Request processing failed", ex);
 		}
 
 		finally {
-			// <9>
+			// <9> TODO
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
-			// <10>
+			// <10> TODO
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
 			}
-			// <11> 打印请求日志，并且日志级别为 DEBUG >
+			// <11> 如果日志级别为 DEBUG，则打印请求日志
 			logResult(request, response, failureCause, asyncManager);
-			// <12> 发布 ServletRequestHandledEvent 事件
+			// <12> 发布 ServletRequestHandledEvent 请求处理完成事件
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}

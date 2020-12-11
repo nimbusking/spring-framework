@@ -56,6 +56,11 @@ import org.springframework.util.CollectionUtils;
  */
 public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
+	/**
+	 * 配置的 URL 与处理器的映射
+	 *
+	 * 最终，会调用 {@link #registerHandlers(Map)} 进行注册到 {@link AbstractUrlHandlerMapping#handlerMap} 中
+	 */
 	private final Map<String, Object> urlMap = new LinkedHashMap<>();
 
 

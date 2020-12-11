@@ -104,20 +104,18 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 
 
 	/**
-	 * View 的类型
-	 *
-	 * - 不同的实现类，会对应一个 View 的类型
+	 * View 的类型，不同的实现类，会对应一个 View 的类型
 	 */
 	@Nullable
 	private Class<?> viewClass;
 
 	/**
-	 * - 前缀
+	 * 前缀
 	 */
 	private String prefix = "";
 
 	/**
-	 * - 后缀
+	 * 后缀
 	 */
 	private String suffix = "";
 
@@ -144,7 +142,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	private final Map<String, Object> staticAttributes = new HashMap<>();
 
 	/**
-	 * - 是否暴露路径变量给 View 使用
+	 * 是否暴露路径变量给 View 使用
 	 */
 	@Nullable
 	private Boolean exposePathVariables;
@@ -152,15 +150,18 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	@Nullable
 	private Boolean exposeContextBeansAsAttributes;
 
-	/**
-	 * - 是否只处理指定的视图名们
-	 */
 	@Nullable
 	private String[] exposedContextBeanNames;
 
+	/**
+	 * 是否只处理指定的视图名们
+	 */
 	@Nullable
 	private String[] viewNames;
 
+	/**
+	 * 顺序，优先级最低
+	 */
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
 
@@ -533,7 +534,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
 	 */
 	protected boolean canHandle(String viewName, Locale locale) {
-		// 一般情况下，viewNames 为空，所以会满足 viewNames == null 代码块。也就说，所有视图名都可以被处理。
+		// 一般情况下，`viewNames` 指定的视图名们为空，所以会满足 viewNames == null 代码块。也就说，所有视图名都可以被处理。
 		String[] viewNames = getViewNames();
 		return (viewNames == null || PatternMatchUtils.simpleMatch(viewNames, viewName));
 	}
@@ -624,6 +625,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * @see org.springframework.beans.factory.config.AutowireCapableBeanFactory#initializeBean
 	 */
 	protected View applyLifecycleMethods(String viewName, AbstractUrlBasedView view) {
+		// 情况一，如果 viewName 有对应的 View Bean 对象，则使用它
 		ApplicationContext context = getApplicationContext();
 		if (context != null) {
 			Object initialized = context.getAutowireCapableBeanFactory().initializeBean(view, viewName);
@@ -631,6 +633,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 				return (View) initialized;
 			}
 		}
+		// 情况二，直接返回 view
 		return view;
 	}
 

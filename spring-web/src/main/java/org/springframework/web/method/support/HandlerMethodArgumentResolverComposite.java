@@ -44,8 +44,14 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	@Deprecated
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * HandlerMethodArgumentResolver 数组
+	 */
 	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
 
+	/**
+	 * MethodParameter 与 HandlerMethodArgumentResolver 的映射，作为缓存
+	 */
 	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache = new ConcurrentHashMap<>(256);
 
 
@@ -124,7 +130,14 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 			throw new IllegalArgumentException("Unsupported parameter type [" +
 					parameter.getParameterType().getName() + "]. supportsParameter should be called first.");
 		}
-		// 进行解析{#link RequestResponseBodyMethodProcessor.resolveArgument(...)}
+		/**
+		 * 进行解析
+		 *
+		 * 基于 @RequestParam 注解
+		 * {@link org.springframework.web.method.annotation.RequestParamMethodArgumentResolver#resolveArgument}
+		 * 基于 @PathVariable 注解
+		 * {@link org.springframework.web.servlet.mvc.method.annotation.PathVariableMethodArgumentResolver#resolveArgument}
+		 */
 		return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 	}
 

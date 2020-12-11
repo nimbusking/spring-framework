@@ -43,14 +43,15 @@ import org.springframework.web.method.HandlerMethod;
  */
 public class InvocableHandlerMethod extends HandlerMethod {
 
+	/** 无参时的入参，空数组 */
 	private static final Object[] EMPTY_ARGS = new Object[0];
 
-
+	/** 数据绑定器工厂 */
 	@Nullable
 	private WebDataBinderFactory dataBinderFactory;
-
+	/** 参数解析器组合对象 */
 	private HandlerMethodArgumentResolverComposite resolvers = new HandlerMethodArgumentResolverComposite();
-
+	/** 方法的参数名称发现器 */
 	private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
 
@@ -151,7 +152,8 @@ public class InvocableHandlerMethod extends HandlerMethod {
 
 		// 获得方法的参数
 		MethodParameter[] parameters = getMethodParameters();
-		if (ObjectUtils.isEmpty(parameters)) { // 无参
+		// 无参，返回空数组
+		if (ObjectUtils.isEmpty(parameters)) {
 			return EMPTY_ARGS;
 		}
 		
@@ -161,17 +163,17 @@ public class InvocableHandlerMethod extends HandlerMethod {
 			// 获得当前遍历的 MethodParameter 对象，并设置 parameterNameDiscoverer 到其中
 			MethodParameter parameter = parameters[i];
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
-			// <1> 先从 providedArgs 中获得参数。如果获得到，则进入下一个参数的解析，默认情况providedArgs不会传参
+			// <1> 先从 providedArgs 中获得参数。如果获得到，则进入下一个参数的解析，默认情况 providedArgs 不会传参
 			args[i] = findProvidedArgument(parameter, providedArgs);
 			if (args[i] != null) {
 				continue;
 			}
-			 // <2> 判断 argumentResolvers 是否支持当前的参数解析
+			 // <2> 判断 resolvers 是否支持当前的参数解析
 			if (!this.resolvers.supportsParameter(parameter)) {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
-				// 执行解析。解析成功后，则进入下一个参数的解析
+				// 执行解析，解析成功后，则进入下一个参数的解析
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {

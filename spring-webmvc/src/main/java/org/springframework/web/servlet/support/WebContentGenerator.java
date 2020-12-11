@@ -170,6 +170,20 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 		return (this.supportedMethods != null ? StringUtils.toStringArray(this.supportedMethods) : null);
 	}
 
+	/**
+	 * Return the "Allow" header value to use in response to an HTTP OPTIONS request
+	 * based on the configured {@link #setSupportedMethods supported methods} also
+	 * automatically adding "OPTIONS" to the list even if not present as a supported
+	 * method. This means subclasses don't have to explicitly list "OPTIONS" as a
+	 * supported method as long as HTTP OPTIONS requests are handled before making a
+	 * call to {@link #checkRequest(HttpServletRequest)}.
+	 * @since 4.3
+	 */
+	@Nullable
+	protected String getAllowHeader() {
+		return this.allowHeader;
+	}
+
 	private void initAllowHeader() {
 		Collection<String> allowedMethods;
 		if (this.supportedMethods == null) {
@@ -189,20 +203,6 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 
 		}
 		this.allowHeader = StringUtils.collectionToCommaDelimitedString(allowedMethods);
-	}
-
-	/**
-	 * Return the "Allow" header value to use in response to an HTTP OPTIONS request
-	 * based on the configured {@link #setSupportedMethods supported methods} also
-	 * automatically adding "OPTIONS" to the list even if not present as a supported
-	 * method. This means subclasses don't have to explicitly list "OPTIONS" as a
-	 * supported method as long as HTTP OPTIONS requests are handled before making a
-	 * call to {@link #checkRequest(HttpServletRequest)}.
-	 * @since 4.3
-	 */
-	@Nullable
-	protected String getAllowHeader() {
-		return this.allowHeader;
 	}
 
 	/**

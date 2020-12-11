@@ -71,6 +71,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 
 	protected RequestMappingInfoHandlerMapping() {
+		// 设置父类的 namingStrategy 属性 Mapping 命名策略对象，为 RequestMappingInfoHandlerMethodMappingNamingStrategy 对象
 		setHandlerMethodMappingNamingStrategy(new RequestMappingInfoHandlerMethodMappingNamingStrategy());
 	}
 

@@ -73,14 +73,14 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 
 		ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
 
+		// MultiValueMap 类型的处理
 		if (MultiValueMap.class.isAssignableFrom(parameter.getParameterType())) {
-			// MultiValueMap
 			Class<?> valueType = resolvableType.as(MultiValueMap.class).getGeneric(1).resolve();
-			if (valueType == MultipartFile.class) {
+			if (valueType == MultipartFile.class) { // MultipartFile 类型
 				MultipartRequest multipartRequest = MultipartResolutionDelegate.resolveMultipartRequest(webRequest);
 				return (multipartRequest != null ? multipartRequest.getMultiFileMap() : new LinkedMultiValueMap<>(0));
 			}
-			else if (valueType == Part.class) {
+			else if (valueType == Part.class) { // Part 类型
 				HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 				if (servletRequest != null && MultipartResolutionDelegate.isMultipartRequest(servletRequest)) {
 					Collection<Part> parts = servletRequest.getParts();
@@ -103,15 +103,14 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				return result;
 			}
 		}
-		
+		// 普通 Map 类型的处理
 		else {
-			// Regular Map
 			Class<?> valueType = resolvableType.asMap().getGeneric(1).resolve();
-			if (valueType == MultipartFile.class) {
+			if (valueType == MultipartFile.class) { // MultipartFile 类型
 				MultipartRequest multipartRequest = MultipartResolutionDelegate.resolveMultipartRequest(webRequest);
 				return (multipartRequest != null ? multipartRequest.getFileMap() : new LinkedHashMap<>(0));
 			}
-			else if (valueType == Part.class) {
+			else if (valueType == Part.class) { // Part 类型
 				HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 				if (servletRequest != null && MultipartResolutionDelegate.isMultipartRequest(servletRequest)) {
 					Collection<Part> parts = servletRequest.getParts();
@@ -125,7 +124,6 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				}
 				return new LinkedHashMap<>(0);
 			}
-			// 普通 Map 类型的处理
 			else {
 				Map<String, String[]> parameterMap = webRequest.getParameterMap();
 				Map<String, String> result = new LinkedHashMap<>(parameterMap.size());

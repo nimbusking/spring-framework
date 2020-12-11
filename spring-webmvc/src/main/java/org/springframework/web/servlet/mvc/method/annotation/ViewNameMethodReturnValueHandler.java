@@ -44,6 +44,9 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
  */
 public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
+	/**
+	 * 重定向的表达式的数组
+	 */
 	@Nullable
 	private String[] redirectPatterns;
 
@@ -77,7 +80,6 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-
 		// 如果是 String 类型
 		if (returnValue instanceof CharSequence) {
 			// 设置视图名到 mavContainer 中
@@ -105,6 +107,7 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	 * reference; "false" otherwise.
 	 */
 	protected boolean isRedirectViewName(String viewName) {
+		// 符合 redirectPatterns 表达式，或者以 redirect: 开头
 		return (PatternMatchUtils.simpleMatch(this.redirectPatterns, viewName) || viewName.startsWith("redirect:"));
 	}
 

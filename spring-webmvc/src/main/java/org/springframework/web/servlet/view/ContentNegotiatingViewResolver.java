@@ -98,12 +98,12 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 	private final ContentNegotiationManagerFactoryBean cnmFactoryBean = new ContentNegotiationManagerFactoryBean();
 
 	/**
-	 * - 在找不到 View 对象时，返回 {@link #NOT_ACCEPTABLE_VIEW}
+	 * 在找不到 View 对象时，返回 {@link #NOT_ACCEPTABLE_VIEW}
 	 */
 	private boolean useNotAcceptableStatusCode = false;
 
 	/**
-	 * - 默认 View 数组
+	 * 默认 View 数组
 	 */
 	@Nullable
 	private List<View> defaultViews;
@@ -115,7 +115,7 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 	private List<ViewResolver> viewResolvers;
 
 	/**
-	 * - 顺序，优先级最高
+	 * 顺序，优先级最高
 	 */
 	private int order = Ordered.HIGHEST_PRECEDENCE;
 
@@ -199,7 +199,7 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 	protected void initServletContext(ServletContext servletContext) {
 		// <1> 扫描所有 ViewResolver 的 Bean 们
 		Collection<ViewResolver> matchingBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(obtainApplicationContext(), ViewResolver.class).values();
-		// <1.1> 情况一，如果 viewResolvers 为空，则将 matchingBeans 作为 viewResolvers 。
+		// <1.1> 情况一，如果 viewResolvers 为空，则将 matchingBeans 作为 viewResolvers
 		// BeanNameViewResolver、ThymeleafViewResolver、ViewResolverComposite、InternalResourceViewResolver
 		if (this.viewResolvers == null) {
 			this.viewResolvers = new ArrayList<>(matchingBeans.size());
@@ -209,7 +209,7 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 				}
 			}
 		}
-		// <1.2> 情况二，如果 viewResolvers 非空，则和 matchingBeans 进行比对，判断哪些未进行初始化，那么需要进行初始化
+		// <1.2> 情况二，如果 viewResolvers 非空，则和 matchingBeans 进行比对，判断哪些未进行初始化，进行初始化
 		else {
 			for (int i = 0; i < this.viewResolvers.size(); i++) {
 				ViewResolver vr = this.viewResolvers.get(i);
@@ -346,13 +346,13 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 				if (view != null) {
 					candidateViews.add(view);
 				}
-				// <1.3> 情况二，带有文拓展后缀的方式，获得 View 对象，添加到 candidateViews 中
+				// <1.3> 情况二，带有拓展后缀的方式，获得 View 对象，添加到 candidateViews 中
 				for (MediaType requestedMediaType : requestedMediaTypes) {
 					// <1.3.2> 获得 MediaType 对应的拓展后缀的数组（默认情况下未配置）
 					List<String> extensions = this.contentNegotiationManager.resolveFileExtensions(requestedMediaType);
 					// <1.3.3> 遍历拓展后缀的数组
 					for (String extension : extensions) {
-						// <1.3.4> 带有文拓展后缀的方式，获得 View 对象，添加到 candidateViews 中
+						// <1.3.4> 带有拓展后缀的方式，获得 View 对象，添加到 candidateViews 中
 						String viewNameWithExtension = viewName + '.' + extension;
 						view = viewResolver.resolveViewName(viewNameWithExtension, locale);
 						if (view != null) {
