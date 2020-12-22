@@ -49,16 +49,27 @@ public class PropertyPlaceholderHelper {
 		wellKnownSimplePrefixes.put(")", "(");
 	}
 
-
+	/**
+	 * 占位符前缀，`${`
+	 */
 	private final String placeholderPrefix;
 
+	/**
+	 * 占位符后缀，`$}`
+	 */
 	private final String placeholderSuffix;
 
 	private final String simplePrefix;
 
+	/**
+	 * 占位符变量与关联的默认值之间的分隔符，`:`
+	 */
 	@Nullable
 	private final String valueSeparator;
 
+	/**
+	 * 指示是否忽略不可解析的占位符（true）或抛出异常（false），默认 `false`
+	 */
 	private final boolean ignoreUnresolvablePlaceholders;
 
 
@@ -197,7 +208,7 @@ public class PropertyPlaceholderHelper {
 				startIndex = -1;
 			}
 		}
-		// 返回propVal，就是替换之后的值
+		// 返回 propVal，就是替换之后的值
 		return result.toString();
 	}
 

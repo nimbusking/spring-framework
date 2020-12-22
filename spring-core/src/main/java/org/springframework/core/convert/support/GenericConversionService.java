@@ -108,7 +108,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 	public void addConverter(GenericConverter converter) {
 		// 添加到 converters 中
 		this.converters.add(converter);
-		// 过期缓存
+		// 清理缓存
 		invalidateCache();
 	}
 
@@ -200,7 +200,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 		if (converter != null) {
 			// <4.1> 执行转换
 			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
-			// <4.2> 处理器结果
+			// <4.2> 处理结果，进行校验
 			return handleResult(sourceType, targetType, result);
 		}
 		// <5> 处理 converter 为空的情况
@@ -529,14 +529,14 @@ public class GenericConversionService implements ConfigurableConversionService {
 		public void add(GenericConverter converter) {
 			// 获得 ConvertiblePair 集合
 			Set<ConvertiblePair> convertibleTypes = converter.getConvertibleTypes();
-			// 如果为空，并且 converter 是 ConditionalConverter 类型，则添加到 【globalConverters】 中
+			// 如果为空，并且 converter 是 ConditionalConverter 类型，则添加到 `globalConverters` 中
 			if (convertibleTypes == null) {
 				Assert.state(converter instanceof ConditionalConverter,
 						"Only conditional converters may return null convertible types");
 				this.globalConverters.add(converter);
 			}
 			else {
-				// 通过迭代的方式依次添加【converters】中
+				// 通过迭代的方式依次添加 `converters` 中
 				for (ConvertiblePair convertiblePair : convertibleTypes) {
 					// 从 converters 中，获得 ConvertersForPair 对象
 					ConvertersForPair convertersForPair = getMatchableConverters(convertiblePair);

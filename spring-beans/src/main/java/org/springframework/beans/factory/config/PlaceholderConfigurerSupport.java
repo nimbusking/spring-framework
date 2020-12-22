@@ -225,7 +225,7 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 					&& beanFactoryToProcess.equals(this.beanFactory))) { // 2. 同一个 Spring 容器
 				BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
 				try {
-					// <2.2> 进行访问
+					// <2.2> 进行访问，会进行解析
 					visitor.visitBeanDefinition(bd);
 				}
 				catch (Exception ex) {

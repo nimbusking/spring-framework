@@ -99,6 +99,16 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		return true;
 	}
 
+	@Override
+	public void removeAlias(String alias) {
+		synchronized (this.aliasMap) {
+			String name = this.aliasMap.remove(alias);
+			if (name == null) {
+				throw new IllegalStateException("No alias '" + alias + "' registered");
+			}
+		}
+	}
+
 	/**
 	 * Determine whether the given name has the given alias registered.
 	 * @param name the name to check
@@ -116,16 +126,6 @@ public class SimpleAliasRegistry implements AliasRegistry {
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public void removeAlias(String alias) {
-		synchronized (this.aliasMap) {
-			String name = this.aliasMap.remove(alias);
-			if (name == null) {
-				throw new IllegalStateException("No alias '" + alias + "' registered");
-			}
-		}
 	}
 
 	@Override

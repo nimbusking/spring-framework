@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
 public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 	/**
-	 * - 线程变量，正在创建 Bean 的 Method 对象
+	 * 线程变量，正在创建 Bean 的 Method 对象
 	 */
 	private static final ThreadLocal<Method> currentlyInvokedFactoryMethod = new ThreadLocal<>();
 
@@ -163,10 +163,10 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				ReflectionUtils.makeAccessible(factoryMethod);
 			}
 
-			// 获得原 Method 对象
+			// 获得原当前线程正在使用的 Method 对象
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
-				// 设置新的 Method 对象，到 currentlyInvokedFactoryMethod 中
+				// 设置新的 Method 对象到当前线程变量中
 				currentlyInvokedFactoryMethod.set(factoryMethod);
 				// <x> 创建 Bean 对象
 				Object result = factoryMethod.invoke(factoryBean, args);
@@ -177,7 +177,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				return result;
 			}
 			finally {
-				// 设置老的 Method 对象，到 currentlyInvokedFactoryMethod 中
+				// 设置原当前线程正在使用的 Method 对象到当前线程变量中
 				if (priorInvokedFactoryMethod != null) {
 					currentlyInvokedFactoryMethod.set(priorInvokedFactoryMethod);
 				}
