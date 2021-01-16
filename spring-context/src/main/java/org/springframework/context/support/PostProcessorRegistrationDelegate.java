@@ -57,13 +57,13 @@ final class PostProcessorRegistrationDelegate {
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
 
-		// <1> 处理入参中的 BeanFactoryPostProcessor，以及容器中的 BeanDefinitionRegistryPostProcessor
+		// <1> 执行当前 Spring 应用上下文和底层 BeanFactory 容器中的 BeanFactoryPostProcessor、BeanDefinitionRegistryPostProcessor 们的处理
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// <1.1> 先遍历入参中的 `beanFactoryPostProcessors`，如果是 BeanDefinitionRegistryPostProcessor 类型则进行处理
+			// <1.1> 先遍历当前 Spring 应用上下文中的 `beanFactoryPostProcessors`，如果是 BeanDefinitionRegistryPostProcessor 类型则进行处理
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor = (BeanDefinitionRegistryPostProcessor) postProcessor;
@@ -81,11 +81,11 @@ final class PostProcessorRegistrationDelegate {
 			// uninitialized to let the bean factory post-processors apply to them!
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
-			// 临时变量，用于保存当前上下文中的 BeanDefinitionRegistryPostProcessor 对象
+			// 临时变量，用于临时保存 BeanFactory 容器中的 BeanDefinitionRegistryPostProcessor 对象
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
-			// <1.2> 获取容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
+			// <1.2> 获取底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
 			String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				// 如果实现了 PriorityOrdered 接口，则获取到对应的 Bean
@@ -105,7 +105,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
-			// <1.3> 获取容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
+			// <1.3> 获取底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				// 如果实现了 Ordered 接口并且没有执行过，则获取到对应的 Bean
@@ -128,7 +128,7 @@ final class PostProcessorRegistrationDelegate {
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;
-				// <1.4> 获取容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
+				// <1.4> 获取底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor 类型的 Bean 们，遍历进行处理
 				postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 				for (String ppName : postProcessorNames) {
 					// 如果该 BeanDefinitionRegistryPostProcessors 在上述过程中没有执行过，则获取到对应的 Bean
@@ -151,22 +151,22 @@ final class PostProcessorRegistrationDelegate {
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
 			/*
-			 * <1.5> 上述执行完上下文中所有 BeanDefinitionRegistryPostProcessor 处理器中的 postProcessBeanDefinitionRegistry(registry) 方法后，
+			 * <1.5> 上述执行完当前 Spring 应用上下文和底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor 处理器中的 postProcessBeanDefinitionRegistry(registry) 方法后，
 			 * 接下来执行它们的 postProcessBeanFactory(beanFactory) 方法
 			 *
 			 * 注意：BeanDefinitionRegistryPostProcessor 继承 BeanFactoryPostProcessor 接口
 			 */
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			/*
-			 * <1.6> 这里我们执行入参中 BeanFactoryPostProcessor 处理器（非 BeanDefinitionRegistryPostProcessors 类型）的
+			 * <1.6> 这里我们执行当前 Spring 应用上下文中 BeanFactoryPostProcessor 处理器（非 BeanDefinitionRegistryPostProcessors 类型）的
 			 * postProcessBeanFactory(beanFactory) 方法
 			 *
-			 * 例如：PropertyPlaceholderConfigurer、PropertyPlaceholderConfigurer
+			 * 例如：PropertyPlaceholderConfigurer、PropertySourcesPlaceholderConfigurer
 			 */
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
 
-		// <2> 执行入参中的 BeanFactoryPostProcessor 处理器的 postProcessBeanFactory(beanFactory) 方法
+		// <2> 执行当前 Spring 应用上下文中的 BeanFactoryPostProcessor 处理器的 postProcessBeanFactory(beanFactory) 方法
 		else {
 			// Invoke factory processors registered with the context instance.
 			invokeBeanFactoryPostProcessors(beanFactoryPostProcessors, beanFactory);
@@ -174,7 +174,7 @@ final class PostProcessorRegistrationDelegate {
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let the bean factory post-processors apply to them!
-		// <3> 获取上下中所有 BeanFactoryPostProcessor 类型的 Bean 们
+		// <3> 获取底层 BeanFactory 容器中所有 BeanFactoryPostProcessor 类型的 Bean 们
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
 		// Separate between BeanFactoryPostProcessors that implement PriorityOrdered,
@@ -317,8 +317,8 @@ final class PostProcessorRegistrationDelegate {
 
 		// Re-register post-processor for detecting inner beans as ApplicationListeners,
 		// moving it to the end of the processor chain (for picking up proxies etc).
-		// 加入 ApplicationListenerDetector（探测器）
-		// 重新注册（已经存在） BeanPostProcessor 以检测内部 bean，因为 ApplicationListeners 将其移动到处理器链的末尾
+		// 重新注册 ApplicationListenerDetector（探测器），用于探测内部 ApplicationListener 类型的 Bean
+		// 在完全初始化 Bean 后，如果是 ApplicationListener 类型且为单例模式，则添加到 Spring 应用上下文
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext));
 	}
 

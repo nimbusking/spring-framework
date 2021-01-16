@@ -127,7 +127,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
-		// 记录老的 BeanDefinitionParserDelegate 对象
+		// 记录老的 BeanDefinitionParserDelegate 对象，该对象用于解析 XML 文件
 		BeanDefinitionParserDelegate parent = this.delegate;
 		// <1> 创建 BeanDefinitionParserDelegate 对象，并进行设置到 delegate
 		this.delegate = createDelegate(getReaderContext(), root, parent);
@@ -342,7 +342,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	    // 如果解析失败，则返回 null 
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
-			// <2> 进行自定义标签处理
+			// <2> 进行标签进行装饰
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.

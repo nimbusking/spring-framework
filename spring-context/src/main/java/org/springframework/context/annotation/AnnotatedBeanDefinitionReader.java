@@ -215,6 +215,7 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
 
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		// 通过条件评估器判断是否跳过（@Conditional 注解相关）
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}

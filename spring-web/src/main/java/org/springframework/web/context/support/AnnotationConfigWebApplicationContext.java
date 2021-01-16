@@ -225,6 +225,8 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 				logger.debug("Scanning base packages: [" +
 						StringUtils.collectionToCommaDelimitedString(this.basePackages) + "]");
 			}
+			// 扫描指定包路径下 @Component 注解的 .class 文件，会解析出 BeanDefinition 对象
+			// 通过 AnnotationConfigUtils 注册几个重要的 PostProcessor 后置处理对象（BeanPostProcessor、BeanFactoryPostProcessor）
 			scanner.scan(StringUtils.toStringArray(this.basePackages));
 		}
 

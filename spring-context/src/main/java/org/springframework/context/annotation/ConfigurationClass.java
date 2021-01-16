@@ -49,6 +49,9 @@ import org.springframework.util.ClassUtils;
  */
 final class ConfigurationClass {
 
+	/**
+	 * 元数据信息
+	 */
 	private final AnnotationMetadata metadata;
 
 	private final Resource resource;
@@ -56,16 +59,30 @@ final class ConfigurationClass {
 	@Nullable
 	private String beanName;
 
+	/**
+	 * 假如这个 Class 对象是通过 @Import 注解被导入的
+	 * 那么这个集合保存的就是该 @Import 注解标注的配置类，表示谁把它导入的
+	 */
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
+	/**
+	 * 带有 @Bean 注解的方法集合
+	 */
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
 
-	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
-			new LinkedHashMap<>();
+	/**
+	 * 需要导入的资源集合
+	 */
+	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources = new LinkedHashMap<>();
 
-	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars =
-			new LinkedHashMap<>();
+	/**
+	 * {@link Import} 注解导入的 ImportBeanDefinitionRegistrar 类型的对象
+	 */
+	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars = new LinkedHashMap<>();
 
+	/**
+	 * 需要跳过的 @Bean 注解的方法集合
+	 */
 	final Set<String> skippedBeanMethods = new HashSet<>();
 
 

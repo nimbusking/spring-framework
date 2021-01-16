@@ -270,24 +270,38 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		// 用于保存扫描出来并成功注册的 BeanDefinition 们
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
-		for (String basePackage : basePackages) {
+		for (String basePackage : basePackages) { // 遍历需要扫描的包名
+			// 【核心】对包路径进行扫描，通过 ASM（Java 字节码的操作和分析框架）解析出符合条件的 BeanDefinition 们
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
+				// 解析出 @Scope 注解的元信息
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+
+				// 获取或者生成一个 Bean 的名称
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+
 				if (candidate instanceof AbstractBeanDefinition) {
+					// 如果是 AbstractBeanDefinition 类型，则尝试设置一些默认的属性值
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
+
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					// 如果是注解标注的 Spring Bean，则解析出注解中的相关配置，设置到当前 BeanDefinition 中
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+
+				/*
+				 * 检查 beanName 是否已存在，已存在但是不兼容则会抛出异常
+				 */
 				if (checkCandidate(beanName, candidate)) {
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
-					definitionHolder =
-							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+					// 和 Scope 相关
+					definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+					// 注册当前 BeanDefinition
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}
@@ -332,14 +346,21 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * bean definition has been found for the specified name
 	 */
 	protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
+		// beanName 是否已经存在
 		if (!this.registry.containsBeanDefinition(beanName)) {
+			// 不存在则直接返回 true
 			return true;
 		}
+		// 获取该 beanName 已存在的 BeanDefinition 对象
 		BeanDefinition existingDef = this.registry.getBeanDefinition(beanName);
 		BeanDefinition originatingDef = existingDef.getOriginatingBeanDefinition();
 		if (originatingDef != null) {
 			existingDef = originatingDef;
 		}
+
+		/*
+		 * 判断是否兼容，如果兼容则忽略不计，否则抛出异常
+		 */
 		if (isCompatible(beanDefinition, existingDef)) {
 			return false;
 		}

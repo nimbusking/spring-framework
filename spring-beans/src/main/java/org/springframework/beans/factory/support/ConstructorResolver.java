@@ -247,7 +247,7 @@ class ConstructorResolver {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
-						// 根据构造函数和构造参数，创建参数持有者 ArgumentsHolder 对象
+						// 根据构造函数和构造参数，创建参数持有者 ArgumentsHolder 对象，会通过构造器的方式进行依赖注入
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
@@ -856,6 +856,7 @@ class ConstructorResolver {
 							"] - did you specify the correct bean references as arguments?");
 				}
 				try {
+					// 构造器的方式进行依赖注入
 					Object autowiredArgument = resolveAutowiredArgument(
 							methodParam, beanName, autowiredBeanNames, converter, fallback);
 					args.rawArguments[paramIndex] = autowiredArgument;
@@ -953,6 +954,7 @@ class ConstructorResolver {
 			return injectionPoint;
 		}
 		try {
+			// 依赖注入
 			return this.beanFactory.resolveDependency(
 					new DependencyDescriptor(param, true), beanName, autowiredBeanNames, typeConverter);
 		}

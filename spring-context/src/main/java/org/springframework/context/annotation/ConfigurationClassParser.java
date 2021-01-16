@@ -160,16 +160,20 @@ class ConfigurationClassParser {
 
 
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		// 遍历所有的 BeanDefinition
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
 				if (bd instanceof AnnotatedBeanDefinition) {
+					// 解析，生成的 ConfigurationClass 对象保存在 `configurationClasses` 集合中
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
 				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
+					// 解析，生成的 ConfigurationClass 对象保存在 `configurationClasses` 集合中
 					parse(((AbstractBeanDefinition) bd).getBeanClass(), holder.getBeanName());
 				}
 				else {
+					// 解析，生成的 ConfigurationClass 对象保存在 `configurationClasses` 集合中
 					parse(bd.getBeanClassName(), holder.getBeanName());
 				}
 			}
@@ -215,6 +219,7 @@ class ConfigurationClassParser {
 
 
 	protected void processConfigurationClass(ConfigurationClass configClass) throws IOException {
+		// @Conditional 的处理，是否需要跳过
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
 		}
@@ -237,12 +242,17 @@ class ConfigurationClassParser {
 		}
 
 		// Recursively process the configuration class and its superclass hierarchy.
+		// 获取这个 ConfigurationClass 配置类的所在 Class 对象
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
+			// 解析 ConfigurationClass 对象，对相关注解（@PropertySource、@ComponentScan、@Import、@ImportResource、@Bean）进行解析
+			// 其中解析出带有 @Bean 注解方法保存至其中，@ImportResource 配置的资源也保存其中
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass);
 		}
+		// 父类循环解析
 		while (sourceClass != null);
 
+		// 将该 ConfigurationClass 配置类保存
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -258,12 +268,14 @@ class ConfigurationClassParser {
 	protected final SourceClass doProcessConfigurationClass(ConfigurationClass configClass, SourceClass sourceClass)
 			throws IOException {
 
+		// <1> 先处理内部成员类
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
 			processMemberClasses(configClass, sourceClass);
 		}
 
 		// Process any @PropertySource annotations
+		// <2> 处理 @PropertySource 注解，加载对应的资源
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -277,14 +289,15 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @ComponentScan annotations
+		// <3> 处理 @ComponentScan 注解，扫描出指定包路径下的 BeanDefinition 们
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
-				Set<BeanDefinitionHolder> scannedBeanDefinitions =
-						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
+				// 底层会通过 ClassPathBeanDefinitionScanner 扫描指定的包路径，注册相关 BeanDefinition 们
+				Set<BeanDefinitionHolder> scannedBeanDefinitions = this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
@@ -299,11 +312,14 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
+		// <4> 处理 @Import 注解，ImportSelector 和 ImportBeanDefinitionRegistrar 类型会有相关处理
+		// 注解中的 Class 对象也会生成一个 ConfigurationClass 对象，再进行处理
+		// 这个对象不同的是其内部 `importedBy` 属性不为空，保存了是被谁 Import 的
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
-		AnnotationAttributes importResource =
-				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
+		// <5> 处理 @ImportResource 注解，获取需要导入的资源配置信息
+		AnnotationAttributes importResource = AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
 			String[] resources = importResource.getStringArray("locations");
 			Class<? extends BeanDefinitionReader> readerClass = importResource.getClass("reader");
@@ -314,15 +330,18 @@ class ConfigurationClassParser {
 		}
 
 		// Process individual @Bean methods
+		// <6> 解析出所有带有 @Bean 注解的方法，通过 ASM 保证每个方法定义的顺序
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
 		}
 
 		// Process default methods on interfaces
+		// <6> 解析接口中带有 @Bean 注解的默认方法
 		processInterfaces(configClass, sourceClass);
 
 		// Process superclass, if any
+		// <7> 如果有父类，则返回父类，再进行解析
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
 			if (superclass != null && !superclass.startsWith("java") &&
@@ -334,6 +353,7 @@ class ConfigurationClassParser {
 		}
 
 		// No superclass -> processing is complete
+		// <8> 已经是顶部类，表示解析完成
 		return null;
 	}
 
@@ -389,15 +409,20 @@ class ConfigurationClassParser {
 	 */
 	private Set<MethodMetadata> retrieveBeanMethodMetadata(SourceClass sourceClass) {
 		AnnotationMetadata original = sourceClass.getMetadata();
+
+		// 获取类中带有 @Bean 注解的方法，并封装成 StandardMethodMetadata 对象
 		Set<MethodMetadata> beanMethods = original.getAnnotatedMethods(Bean.class.getName());
 		if (beanMethods.size() > 1 && original instanceof StandardAnnotationMetadata) {
 			// Try reading the class file via ASM for deterministic declaration order...
 			// Unfortunately, the JVM's standard reflection returns methods in arbitrary
 			// order, even between different runs of the same application on the same JVM.
+			// JVM 标准的反射机制是无法控制获取到方法的顺序的，这里通过 ASM 根据 .class 文件来控制方法的顺序，也就是定义的顺序
 			try {
-				AnnotationMetadata asm =
-						this.metadataReaderFactory.getMetadataReader(original.getClassName()).getAnnotationMetadata();
+				// 通过 ASM 从 .class 文件中获取相关信息
+				AnnotationMetadata asm = this.metadataReaderFactory.getMetadataReader(original.getClassName()).getAnnotationMetadata();
+				// 获取所有带有 @Bean 注解的方法
 				Set<MethodMetadata> asmMethods = asm.getAnnotatedMethods(Bean.class.getName());
+				// 调整 `beanMethods` 元素的顺序
 				if (asmMethods.size() >= beanMethods.size()) {
 					Set<MethodMetadata> selectedMethods = new LinkedHashSet<>(asmMethods.size());
 					for (MethodMetadata asmMethod : asmMethods) {

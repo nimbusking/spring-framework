@@ -204,6 +204,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
+		// 添加 @Component 注解的过滤器
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
 		try {
@@ -309,10 +310,18 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
-		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
+		/*
+		 * 从 Spring 5.0 开始新增了一个 @Index 注解，用于提升 Spring 启动过程的性能，不再去扫描包路径而是去配置文件里面读取，属于一个新特性
+		 * @Component 注解上面就添加了 @Index 注解
+ 		 */
+		if (this.componentsIndex != null // CandidateComponentsIndex 不为空，在构建 this 对象的时候会根据情况看是否创建一个对象
+				&& indexSupportsIncludeFilters()) // 需要扫描的注解是否都标注了 @Index 注解
+		{
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 扫描所有符合条件的 @Component 注解标注的 .class 文件，通过 ASM（Java 字节码操作和分析框架）解析，最终生成 ScannedGenericBeanDefinition 对象
+			// 返回所有符合条件的 ScannedGenericBeanDefinition 对象
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -414,24 +423,36 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
+		// 用于保存符合条件的 BeanDefinition 对象
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 设置查询包名的路径：classpath*:包路径/**/*.class
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 根据查询包名的路径获取到所有的资源，也就是获取到所有的 .class 文件资源
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
-			for (Resource resource : resources) {
+			for (Resource resource : resources) { // 遍历每一个 .class 文件
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
-				if (resource.isReadable()) {
+				if (resource.isReadable()) { // .class 文件资源可读
 					try {
+						// 获取类的元信息，包含 ClassMetadata 类元信息和 AnnotationMetadata 注解元信息
+						// 这里是通过 ASM（Java 字节码操作和分析框架）实现的
+						// 也就是说通过 `metadataReader` 能获取到 .class 文件的所有信息，而不是在 JVM 运行时通过 Class 对象进行操作
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						// 判断是否有 @Component 注解（或其派生注解）
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+							/*
+							 * 判断这个类是否符合条件
+							 * 不是内部类（static class 不是内部类哦~）
+							 * 并且是一个具体的类（不是接口也不是抽象类，如果是抽象类则需要带有 @Lookup 注解）
+							 */
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
@@ -525,8 +546,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
-		return (metadata.isIndependent() && (metadata.isConcrete() ||
-				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));
+		return (metadata.isIndependent() // 不是内部类（static class 不是内部类哦~）
+				&& (metadata.isConcrete() // 是一个具体的类（不是接口也不是抽象类）
+								|| (metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName())) // 或者是抽象类，但是有 @Lookup 注解
+				));
 	}
 
 

@@ -292,10 +292,17 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		}
 	}
 
-
+	/**
+	 * 在 {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#doCreateBean} 方法中会调用
+	 * 会在填充属性 {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#populateBean} 之前调用
+	 *
+	 * 填充属性的时候会调用下面的 postProcessProperties 方法
+	 */
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// 先调用 InitDestroyAnnotationBeanPostProcessor 父类的方法，找到 @PostConstruct 和 @PreDestroy 注解标注的方法，并构建一个 LifecycleMetadata 对象
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+		// 找到 @Resource 注解标注的方法或者字段，构建一个 InjectionMetadata 对象，用于后续的属性注入
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -315,10 +322,14 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		return true;
 	}
 
+	/**
+	 * 在填充属性 {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#populateBean} 方法中调用
+	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
+			// 进行注入
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (Throwable ex) {

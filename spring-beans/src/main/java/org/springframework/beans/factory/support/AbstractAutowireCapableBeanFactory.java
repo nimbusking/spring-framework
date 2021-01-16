@@ -598,6 +598,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					// 后置处理修改 BeanDefinition
+					// 这里很重要，例如：
+					// 1. AutowiredAnnotationBeanPostProcessor 会先解析出 @Autowired 和 @Value 注解标注的属性的注入元信息，后续进行依赖注入
+					// 2. CommonAnnotationBeanPostProcessor 会解析出 @Resource 注解标注的属性的注入元信息，后续进行依赖注入，
+					// 它也会找到 @PostConstruct 和 @PreDestroy 注解标注的方法，并构建一个 LifecycleMetadata 对象，用于后续生命周期中的初始化和销毁
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -612,7 +616,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		// <4> 【重点】解决单例模式的循环依赖
 		boolean earlySingletonExposure = (mbd.isSingleton() // 单例模式
-				&& this.allowCircularReferences // 运行循环依赖
+				&& this.allowCircularReferences // 允许循环依赖
 				&& isSingletonCurrentlyInCreation(beanName)); // 当前单例 bean 是否正在被创建
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
@@ -1503,6 +1507,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			// 遍历 BeanPostProcessor 数组
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				/*
+				 * 这里会有一个 AutowiredAnnotationBeanPostProcessor 对象，用于处理 @Autowired 和 @Value 注解注入的属性
+				 */
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					// 对所有需要依赖检查的属性进行后处理
@@ -1513,6 +1520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						if (filteredPds == null) {
 							filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 						}
+						// 兼容老版本
 						pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvsToUse == null) {
 							return;
@@ -1925,6 +1933,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 备注：在 AbstractApplicationContext 中的 refresh() 方法中，调用 prepareBeanFactory() 方法进行准备工作时，添加了一个 ApplicationContextAwareProcessor后置处理器，
 		 * 执行该处理器，会对以下几种 Aware 进行处理，调用其 setXxx 方法，如下：
 		 * EnvironmentAware、EmbeddedValueResolverAware、ResourceLoaderAware、ApplicationEventPublisherAware、MessageSourceAware、ApplicationContextAware
+		 *
+		 * 其中 CommonAnnotationBeanPostProcessor 继承了 InitDestroyAnnotationBeanPostProcessor，它的 postProcessBeforeInitialization 用于执行 @PostConstruct 注解标注的方法
 		 */
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {

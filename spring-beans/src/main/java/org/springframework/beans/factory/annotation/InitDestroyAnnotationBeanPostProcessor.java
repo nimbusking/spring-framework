@@ -129,10 +129,17 @@ public class InitDestroyAnnotationBeanPostProcessor
 		metadata.checkConfigMembers(beanDefinition);
 	}
 
+	/**
+	 * 在 {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#initializeBean} 方法中会调用
+	 *
+	 * 初始化 Bean 的时候执行 @PostConstruct 标注的初始化方法
+	 */
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// 找到 @PostConstruct 和 @PreDestroy 注解标注的方法们所对应的 LifecycleMetadata 对象
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 执行 @PostConstruct 标注的初始化方法
 			metadata.invokeInitMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -149,10 +156,17 @@ public class InitDestroyAnnotationBeanPostProcessor
 		return bean;
 	}
 
+	/**
+	 * 在 {@link org.springframework.beans.factory.support.DisposableBeanAdapter#destroy} 方法中会调用
+	 *
+	 * 销毁 Bean 时执行@PreDestroy 注解标注的销毁方法
+	 */
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		// 找到 @PostConstruct 和 @PreDestroy 注解标注的方法们所对应的 LifecycleMetadata 对象
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 执行 @PreDestroy 标注的销毁方法
 			metadata.invokeDestroyMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -181,12 +195,15 @@ public class InitDestroyAnnotationBeanPostProcessor
 			return buildLifecycleMetadata(clazz);
 		}
 		// Quick check on the concurrent map first, with minimal locking.
+		// 先从缓存中获取
 		LifecycleMetadata metadata = this.lifecycleMetadataCache.get(clazz);
 		if (metadata == null) {
 			synchronized (this.lifecycleMetadataCache) {
 				metadata = this.lifecycleMetadataCache.get(clazz);
 				if (metadata == null) {
+					// 找到当前 Bean 生命周期元数据对象，也就是找到 @PostConstruct 和 @PreDestroy 注解标注的方法对象，然后构建一个 LifecycleMetadata 对象保存起来
 					metadata = buildLifecycleMetadata(clazz);
+					// 缓存起来
 					this.lifecycleMetadataCache.put(clazz, metadata);
 				}
 				return metadata;

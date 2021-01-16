@@ -237,16 +237,16 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 	@Override
 	public void destroy() {
-		// 调用 BeanPostProcessor 的 postProcessBeforeDestruction
-		// 如基于注解实现的销毁前置处理：InitDestroyAnnotationBeanPostProcessor
-		// 例如基于JDK的 @PreDestory 注解
+		// 调用 BeanPostProcessor#postProcessBeforeDestruction 方法
+		// 如基于注解实现的销毁前置处理：CommonAnnotationBeanPostProcessor，在它的 InitDestroyAnnotationBeanPostProcessor 父类中可以看到
+		// 例如基于 JDK 的 @PreDestroy 注解
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
 
-		// 调用bean的DisposableBean接口实现的destroy
+		// 实现了 DisposableBean 接口的 Bean 的回调
 		if (this.invokeDisposableBean) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Invoking destroy() on bean with name '" + this.beanName + "'");
@@ -273,7 +273,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			}
 		}
 
-		// 调用destroy-method，即在bean标签中声明的destroy-method
+		// 调用 destroy-method 自定义的销毁方法
 		if (this.destroyMethod != null) {
 			invokeCustomDestroyMethod(this.destroyMethod);
 		}
