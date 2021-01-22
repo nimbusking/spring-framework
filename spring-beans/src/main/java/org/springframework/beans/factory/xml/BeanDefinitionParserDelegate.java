@@ -414,20 +414,20 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
-		// <1> 解析 id 和 name 属性
+		// <1> 计算 BeanDefinition 的 `beanName` 名称和 `aliases` 别名集合
+		// <1.1> 获取标签的 `id` 和 `name` 属性
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
-		// <1> 计算别名集合
+		// <1.2> 将 `name` 属性全部添加至别名集合
 		List<String> aliases = new ArrayList<>();
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 			aliases.addAll(Arrays.asList(nameArr));
 		}
 
-		// <3.1> beanName ，优先，使用 id
+		// <1.3> 设置 Bean 的名称，优先 `id` 属性，其次 `name` 属性
 		String beanName = id;
-		// <3.2> beanName ，其次，使用 aliases 的第一个
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0); // 移除出别名集合
 			if (logger.isTraceEnabled()) {
@@ -436,24 +436,24 @@ public class BeanDefinitionParserDelegate {
 			}
 		}
 
-		// <2> 检查 beanName 的唯一性
+		// <1.4> 检查 beanName 的唯一性
 		if (containingBean == null) {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
-		// <4> 解析属性，构造 AbstractBeanDefinition 对象
+		// <2> 解析 `<bean />` 标签相关属性，构造出一个 GenericBeanDefinition 对象
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
-			// <3.3> beanName ，再次，使用 beanName 生成规则
+			// <3> 如果不存在 `beanName`，则根据 Class 对象的名称生成一个
 			if (!StringUtils.hasText(beanName)) {
 				try {
-					if (containingBean != null) {
-						// <3.3> 生成唯一的 beanName
+					if (containingBean != null) { // 内部 Bean
+						// <3.1> 生成唯一的 `beanName`
 						beanName = BeanDefinitionReaderUtils.generateBeanName(
 								beanDefinition, this.readerContext.getRegistry(), true);
 					}
 					else {
-						// <3.3> 生成唯一的 beanName
+						// <3.2> 生成唯一的 beanName
 						beanName = this.readerContext.generateBeanName(beanDefinition);
 						// Register an alias for the plain bean class name, if still possible,
 						// if the generator returned the class name plus a suffix.
@@ -475,7 +475,7 @@ public class BeanDefinitionParserDelegate {
 					return null;
 				}
 			}
-			// <5> 创建 BeanDefinitionHolder 对象
+			// <4> 创建 BeanDefinitionHolder 对象，设置 `beanName` 名称和 `aliases` 别名集合，返回
 			String[] aliasesArray = StringUtils.toStringArray(aliases);
 			return new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
 		}
@@ -517,44 +517,44 @@ public class BeanDefinitionParserDelegate {
 
 		this.parseState.push(new BeanEntry(beanName));
 
-		// 解析 class 属性
+		// <1> 获取 `class` 和 `parent` 属性
 		String className = null;
 		if (ele.hasAttribute(CLASS_ATTRIBUTE)) {
 			className = ele.getAttribute(CLASS_ATTRIBUTE).trim();
 		}
-		// 解析 parent 属性
 		String parent = null;
 		if (ele.hasAttribute(PARENT_ATTRIBUTE)) {
 			parent = ele.getAttribute(PARENT_ATTRIBUTE);
 		}
 
 		try {
-			// 创建用于承载属性的 AbstractBeanDefinition 实例
+			// <2> 构建一个 GenericBeanDefinition 对象 `bd`
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
 
-			// 解析默认 bean 的各种属性
+			// <3> 解析 `<bean />` 的各种属性并赋值
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			// 提取 description
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
-			// 下面的一堆是解析 <bean>......</bean> 内部的子元素，
-	        // 解析出来以后的信息都放到 bd 的属性中
-			
-			// 解析元数据 <meta />
+			// <4> 解析 `<bean />` 的子标签，生成的对象设置到 `bd` 中
+
+			// <4.1> 解析 `<meta />` 元数据标签
 			parseMetaElements(ele, bd);
-			// 解析 lookup-method 属性 <lookup-method />
+			// <4.2> 解析 `<lookup-method />` 标签
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
-			// 解析 replaced-method 属性 <replaced-method />
+			// <4.3> 解析 `<replaced-method />` 标签
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
-			// 解析构造函数参数 <constructor-arg />
+			// <4.4> 解析 `<constructor-arg />` 构造函数的参数集合标签
 			parseConstructorArgElements(ele, bd);
-			// 解析 property 子元素 <property />
+			// <4.5> 解析 `<property />` 属性标签
 			parsePropertyElements(ele, bd);
-			// 解析 qualifier 子元素 <qualifier />
+			// <4.5> 解析 `<qualifier />` 标签
 			parseQualifierElements(ele, bd);
 
+			// <5> 设置 Bean 的 `resource` 资源为 XML 文件资源
 			bd.setResource(this.readerContext.getResource());
+			// <6> 设置 Bean 的 `source` 来源为 `<bean />` 标签对象
 			bd.setSource(extractSource(ele));
 
 			return bd;
@@ -1451,17 +1451,18 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
-		// <1> 获取 namespaceUri
+		// <1> 获取 `namespaceUri`
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
-		// <2> 根据 namespaceUri 获取相应的 Handler
+		// <2> 通过 DefaultNamespaceHandlerResolver 根据 `namespaceUri` 获取相应的 NamespaceHandler 处理器
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		// <3> 根据 NamespaceHandler 命名空间处理器处理该标签
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 

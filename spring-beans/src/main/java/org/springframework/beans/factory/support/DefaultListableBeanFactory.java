@@ -891,7 +891,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
 		// <1> 校验 BeanDefinition
-	    // 这是注册前的最后一次校验了，主要是对属性 methodOverrides 进行校验。
+	    // 这是注册前的最后一次校验了，主要是对属性 methodOverrides 进行校验
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
@@ -1217,7 +1217,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public Object doResolveDependency(DependencyDescriptor descriptor, @Nullable String beanName,
 			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException {
 
-		// 注入点，嵌套多次注入的一个保护点
+		// 设置当前线程的注入点，并返回上次的注入点，属于嵌套注入的一个保护点
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);
 		try {
 			// <1> 针对给定的工厂给定一个快捷实现的方式，例如考虑一些预先解析的信息
@@ -1322,6 +1322,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			return result;
 		}
 		finally {
+			// 设置当前线程的注入点为上一次的注入点，因为本次注入结束了
 			ConstructorResolver.setCurrentInjectionPoint(previousInjectionPoint);
 		}
 	}

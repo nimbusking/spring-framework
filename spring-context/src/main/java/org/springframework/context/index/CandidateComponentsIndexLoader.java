@@ -63,8 +63,8 @@ public final class CandidateComponentsIndexLoader {
 
 	private static final Log logger = LogFactory.getLog(CandidateComponentsIndexLoader.class);
 
-	private static final ConcurrentMap<ClassLoader, CandidateComponentsIndex> cache =
-			new ConcurrentReferenceHashMap<>();
+	/** CandidateComponentsIndex 的缓存，与 ClassLoader 对应 */
+	private static final ConcurrentMap<ClassLoader, CandidateComponentsIndex> cache = new ConcurrentReferenceHashMap<>();
 
 
 	private CandidateComponentsIndexLoader() {
@@ -86,20 +86,24 @@ public final class CandidateComponentsIndexLoader {
 		if (classLoaderToUse == null) {
 			classLoaderToUse = CandidateComponentsIndexLoader.class.getClassLoader();
 		}
+		// 获取所有 `META-INF/spring.components` 文件中的内容
 		return cache.computeIfAbsent(classLoaderToUse, CandidateComponentsIndexLoader::doLoadIndex);
 	}
 
 	@Nullable
 	private static CandidateComponentsIndex doLoadIndex(ClassLoader classLoader) {
+		// 是否忽略 Index 的提升，通过配置 `spring.index.ignore` 变量，默认为 `false`
 		if (shouldIgnoreIndex) {
 			return null;
 		}
 
 		try {
+			// 获取所有的 `META-INF/spring.components` 文件
 			Enumeration<URL> urls = classLoader.getResources(COMPONENTS_RESOURCE_LOCATION);
 			if (!urls.hasMoreElements()) {
 				return null;
 			}
+			// 加载所有 `META-INF/spring.components` 文件的内容
 			List<Properties> result = new ArrayList<>();
 			while (urls.hasMoreElements()) {
 				URL url = urls.nextElement();
@@ -109,7 +113,9 @@ public final class CandidateComponentsIndexLoader {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + result.size() + "] index(es)");
 			}
+			// 总共配置多少个 component 组件
 			int totalCount = result.stream().mapToInt(Properties::size).sum();
+			// 如果配置了 component 组件，则封装成 CandidateComponentsIndex 对象并返回
 			return (totalCount > 0 ? new CandidateComponentsIndex(result) : null);
 		}
 		catch (IOException ex) {

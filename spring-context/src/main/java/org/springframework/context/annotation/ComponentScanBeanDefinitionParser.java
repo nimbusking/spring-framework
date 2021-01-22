@@ -80,35 +80,48 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// <1> 获取 `base-package` 属性
 		String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);
+		// 处理占位符
 		basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);
+		// 根据分隔符进行分割
 		String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,
 				ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 
 		// Actually scan for bean definitions and register them.
+		// <2> 创建 ClassPathBeanDefinitionScanner 扫描器，用于扫描指定路径下符合条件的 BeanDefinition 们
 		ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);
+		// <3> 通过扫描器扫描 `basePackages` 指定包路径下的 BeanDefinition（带有 @Component 注解或其派生注解的 Class 类），并注册
 		Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);
+		// <4> 将已注册的 `beanDefinitions` 在当前 XMLReaderContext 上下文标记为已注册，避免重复注册
 		registerComponents(parserContext.getReaderContext(), beanDefinitions, element);
 
 		return null;
 	}
 
 	protected ClassPathBeanDefinitionScanner configureScanner(ParserContext parserContext, Element element) {
+		// <1> 默认使用过滤器（过滤出 @Component 注解或其派生注解的 Class 类）
 		boolean useDefaultFilters = true;
 		if (element.hasAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE)) {
 			useDefaultFilters = Boolean.valueOf(element.getAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE));
 		}
 
 		// Delegate bean definition registration to scanner class.
+		// <2> 创建 ClassPathBeanDefinitionScanner 扫描器 `scanner`，用于扫描指定路径下符合条件的 BeanDefinition 们
 		ClassPathBeanDefinitionScanner scanner = createScanner(parserContext.getReaderContext(), useDefaultFilters);
+		// <3> 设置生成的 BeanDefinition 对象的相关默认属性
 		scanner.setBeanDefinitionDefaults(parserContext.getDelegate().getBeanDefinitionDefaults());
 		scanner.setAutowireCandidatePatterns(parserContext.getDelegate().getAutowireCandidatePatterns());
 
+		// <4> 根据标签的属性进行相关配置
+
+		// <4.1> `resource-pattern` 属性的处理，设置资源文件表达式，默认为 `**/*.class`，即 `classpath*:包路径/**/*.class`
 		if (element.hasAttribute(RESOURCE_PATTERN_ATTRIBUTE)) {
 			scanner.setResourcePattern(element.getAttribute(RESOURCE_PATTERN_ATTRIBUTE));
 		}
 
 		try {
+			// <4.2> `name-generator` 属性的处理，设置 Bean 的名称生成器，默认为 AnnotationBeanNameGenerator
 			parseBeanNameGenerator(element, scanner);
 		}
 		catch (Exception ex) {
@@ -116,14 +129,17 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		try {
+			// <4.3> `scope-resolver`、`scoped-proxy` 属性的处理，设置 Scope 的模式和元信息处理器
 			parseScope(element, scanner);
 		}
 		catch (Exception ex) {
 			parserContext.getReaderContext().error(ex.getMessage(), parserContext.extractSource(element), ex.getCause());
 		}
 
+		// <4.4> `exclude-filter`、`include-filter` 属性的处理，设置 `.class` 文件的过滤器
 		parseTypeFilters(element, scanner, parserContext);
 
+		// <5> 返回 `scanner` 扫描器
 		return scanner;
 	}
 
@@ -132,8 +148,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 				readerContext.getEnvironment(), readerContext.getResourceLoader());
 	}
 
-	protected void registerComponents(
-			XmlReaderContext readerContext, Set<BeanDefinitionHolder> beanDefinitions, Element element) {
+	protected void registerComponents(XmlReaderContext readerContext, Set<BeanDefinitionHolder> beanDefinitions, Element element) {
 
 		Object source = readerContext.extractSource(element);
 		CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(), source);
@@ -143,6 +158,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		// Register annotation config processors, if necessary.
+		// 是否开启注解配置 Bean，默认开启
 		boolean annotationConfig = true;
 		if (element.hasAttribute(ANNOTATION_CONFIG_ATTRIBUTE)) {
 			annotationConfig = Boolean.valueOf(element.getAttribute(ANNOTATION_CONFIG_ATTRIBUTE));
@@ -155,6 +171,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 			}
 		}
 
+		// 标记为已注册
 		readerContext.fireComponentRegistered(compositeDef);
 	}
 

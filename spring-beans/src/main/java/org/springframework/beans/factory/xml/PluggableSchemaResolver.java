@@ -116,17 +116,17 @@ public class PluggableSchemaResolver implements EntityResolver {
 		}
 
 		if (systemId != null) {
-			// 获得 Resource 所在位置
+			// <1> 获得对应的 XSD 文件位置，从所有 `META-INF/spring.handlers` 文件中获取对应的本地 XSD 文件位置
 			String resourceLocation = getSchemaMappings().get(systemId);
 			if (resourceLocation == null && systemId.startsWith("https:")) {
 				// Retrieve canonical http schema mapping even for https declaration
 				resourceLocation = getSchemaMappings().get("http:" + systemId.substring(6));
 			}
-			if (resourceLocation != null) {
-				// 创建 ClassPathResource
+			if (resourceLocation != null) { // 本地 XSD 文件位置
+				// <2> 创建 ClassPathResource 对象
 				Resource resource = new ClassPathResource(resourceLocation, this.classLoader);
 				try {
-					// 创建 InputSource 对象，并设置 publicId、systemId 属性
+					// <3> 创建 InputSource 对象，设置 publicId、systemId 属性，返回
 					InputSource source = new InputSource(resource.getInputStream());
 					source.setPublicId(publicId);
 					source.setSystemId(systemId);
@@ -161,7 +161,7 @@ public class PluggableSchemaResolver implements EntityResolver {
 						logger.trace("Loading schema mappings from [" + this.schemaMappingsLocation + "]");
 					}
 					try {
-						// 以 Properties 的方式，读取 schemaMappingsLocation
+						// 读取 `schemaMappingsLocation`，也就是当前 JVM 环境下所有的 `META-INF/spring.schemas` 文件的内容都会读取到
 						Properties mappings = PropertiesLoaderUtils.loadAllProperties(this.schemaMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Loaded schema mappings: " + mappings);

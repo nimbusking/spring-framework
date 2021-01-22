@@ -66,7 +66,9 @@ public class CandidateComponentsIndex {
 	 * or an empty set if none has been found for the specified {@code basePackage}
 	 */
 	public Set<String> getCandidateTypes(String basePackage, String stereotype) {
+		// 获取注解（或类）对应的条目
 		List<Entry> candidates = this.index.get(stereotype);
+		// 过滤出 `basePackage` 包名下的条目，并返回
 		if (candidates != null) {
 			return candidates.parallelStream()
 					.filter(t -> t.match(basePackage))

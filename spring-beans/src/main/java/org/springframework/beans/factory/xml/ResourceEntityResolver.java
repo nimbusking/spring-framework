@@ -55,6 +55,9 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 
 	private static final Log logger = LogFactory.getLog(ResourceEntityResolver.class);
 
+	/**
+	 * 资源加载器
+	 */
 	private final ResourceLoader resourceLoader;
 
 
@@ -75,16 +78,16 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)
 			throws SAXException, IOException {
 
-		// 调用父类的方法，进行解析
+		// <1> 调用父类的方法，进行解析，获取本地 XSD 文件资源
 		InputSource source = super.resolveEntity(publicId, systemId);
 
-		// 解析失败，resourceLoader 进行解析
+		// <2> 如果没有获取到本地 XSD 文件资源，则尝试通直接通过 systemId 获取（网络形式）
 		if (source == null && systemId != null) {
-			// 获得 resourcePath ，即 Resource 资源地址
+			// <2.1> 将 systemId 解析成一个 URL 地址
 			String resourcePath = null;
 			try {
-				String decodedSystemId = URLDecoder.decode(systemId, "UTF-8"); // 使用 UTF-8 ，解码 systemId
-				String givenUrl = new URL(decodedSystemId).toString(); // 转换成 URL 字符串
+				String decodedSystemId = URLDecoder.decode(systemId, "UTF-8");
+				String givenUrl = new URL(decodedSystemId).toString();
 				// 解析文件资源的相对路径（相对于系统根路径）
 				String systemRootUrl = new File("").toURI().toURL().toString();
 				// Try relative to resource base if currently in system root.
@@ -100,6 +103,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				// No URL (or no resolvable URL) -> try relative to resource base.
 				resourcePath = systemId;
 			}
+			// <2.2> 如果 URL 地址解析成功，则根据该地址获取对应的 Resource 文件资源
 			if (resourcePath != null) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate XML entity [" + systemId + "] as resource [" + resourcePath + "]");
@@ -115,6 +119,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 					logger.debug("Found XML entity [" + systemId + "]: " + resource);
 				}
 			}
+			// <2.3> 否则，再次尝试直接根据 systemId（如果是 "http" 则会替换成 "https"）获取 XSD 文件（网络形式）
 			else if (systemId.endsWith(DTD_SUFFIX) || systemId.endsWith(XSD_SUFFIX)) {
 				// External dtd/xsd lookup via https even for canonical http declaration
 				String url = systemId;

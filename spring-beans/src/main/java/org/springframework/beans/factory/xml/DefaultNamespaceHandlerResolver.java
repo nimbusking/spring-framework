@@ -115,10 +115,11 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
-		// <1> 获取所有已经配置的 Handler 映射
+		// <1> 获取所有已经配置的命名空间与 NamespaceHandler 处理器的映射
 		Map<String, Object> handlerMappings = getHandlerMappings();
-		// <2> 根据 namespaceUri 获取 handler 的信息
+		// <2> 根据 `namespaceUri` 命名空间获取 NamespaceHandler 处理器
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
+		// <3> 接下来对 NamespaceHandler 进行初始化，因为定义在 `spring.handler` 文件中，可能还没有转换成 Class 类对象
 		// <3.1> 不存在
 		if (handlerOrClassName == null) {
 			return null;
@@ -169,13 +170,13 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 						logger.trace("Loading NamespaceHandler mappings from [" + this.handlerMappingsLocation + "]");
 					}
 					try {
-						// 读取 handlerMappingsLocation
+						// 读取 `handlerMappingsLocation`，也就是当前 JVM 环境下所有的 `META-INF/spring.handlers` 文件的内容都会读取到
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.handlerMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Loaded NamespaceHandler mappings: " + mappings);
 						}
-						// 初始化到 handlerMappings 中
+						// 初始化到 `handlerMappings` 中
 						handlerMappings = new ConcurrentHashMap<>(mappings.size());
 						CollectionUtils.mergePropertiesIntoMap(mappings, handlerMappings);
 						this.handlerMappings = handlerMappings;
