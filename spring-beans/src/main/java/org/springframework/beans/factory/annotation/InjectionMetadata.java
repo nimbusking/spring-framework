@@ -51,6 +51,9 @@ public class InjectionMetadata {
 
 	private final Class<?> targetClass;
 
+	/**
+	 * 需要注入的字段（或方法）的元信息
+	 */
 	private final Collection<InjectedElement> injectedElements;
 
 	@Nullable

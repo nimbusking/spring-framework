@@ -63,12 +63,13 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		// Don't override the class with CGLIB if no overrides.
-		// 没有覆盖，直接使用反射实例化即可
+		// <1> 没有 MethodOverride 对象，也就是没有需要覆盖或替换的方法，则直接使用反射机制进行实例化即可
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
-				// 获得构造方法 constructorToUse
+				// <1.1> 尝试从 RootBeanDefinition 获得已经解析出来的构造方法 `resolvedConstructorOrFactoryMethod`
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
+				// <1.2> 没有解析出来的构造方法，则获取默认的构造方法
 				if (constructorToUse == null) {
 					final Class<?> clazz = bd.getBeanClass();
 					// 如果是接口，抛出 BeanInstantiationException 异常
@@ -92,12 +93,12 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
-			// 通过 BeanUtils 直接使用构造器对象实例化 Bean 对象
+			// <1.3> 通过这个构造方法实例化一个对象（反射机制）
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
+		// <2> 否则，通过 CGLIB 生成一个子类对象
 		else {
 			// Must generate CGLIB subclass.
-			// 生成 CGLIB 创建的子类对象
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}

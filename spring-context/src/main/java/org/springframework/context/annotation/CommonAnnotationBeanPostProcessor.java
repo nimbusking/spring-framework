@@ -300,9 +300,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 */
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
-		// 先调用 InitDestroyAnnotationBeanPostProcessor 父类的方法，找到 @PostConstruct 和 @PreDestroy 注解标注的方法，并构建一个 LifecycleMetadata 对象
+		// 先调用父类的方法，找到 @PostConstruct 和 @PreDestroy 注解标注的方法，并构建 LifecycleMetadata 对象
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
-		// 找到 @Resource 注解标注的方法或者字段，构建一个 InjectionMetadata 对象，用于后续的属性注入
+		// 找到 @Resource 注解标注的字段（或方法），构建一个 InjectionMetadata 对象，用于后续的属性注入
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -398,6 +398,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			});
 
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 尝试找到这个方法的桥接方法，没有的话就是本身这个方法
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
@@ -563,10 +564,11 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 */
 	protected abstract class LookupElement extends InjectionMetadata.InjectedElement {
 
+		/** Bean 的名称 */
 		protected String name = "";
-
+		/** 是否为默认的名称（通过注解定义的） */
 		protected boolean isDefaultName = false;
-
+		/** Bean 的类型 */
 		protected Class<?> lookupType = Object.class;
 
 		@Nullable
@@ -610,6 +612,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 */
 	private class ResourceElement extends LookupElement {
 
+		/** 是否延迟加载 */
 		private final boolean lazyLookup;
 
 		public ResourceElement(Member member, AnnotatedElement ae, @Nullable PropertyDescriptor pd) {

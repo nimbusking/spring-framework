@@ -134,14 +134,16 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 * Map between dependent bean names: bean name to Set of dependent bean names.
 	 * 
-	 * 保存的是依赖 beanName 之间的映射关系：beanName --> 依赖 beanName 的集合
+	 * key：beanName
+	 * value：依赖 beanName 的集合（`depends-on` 配置的依赖）
 	 */
 	private final Map<String, Set<String>> dependentBeanMap = new ConcurrentHashMap<>(64);
 
 	/**
 	 * Map between depending bean names: bean name to Set of bean names for the bean's dependencies.
 	 * 
-	 * 保存的是依赖 beanName 之间的映射关系：beanName - > beanName 的依赖的集合
+	 * key：beanName
+	 * value：beanName 的依赖的集合（`depends-on` 配置的依赖）
 	 */
 	private final Map<String, Set<String>> dependenciesForBeanMap = new ConcurrentHashMap<>(64);
 
@@ -201,7 +203,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
-	 * 这里的 “三级缓存” 可以 “有效” 地解决循环依赖，在后续会看到，AbtractAutowireCapableBeanFactory 的 doCreateBean(...) 方法中可以看到
+	 * 这里的三个 Map 可以解决**循环依赖注入**，在后续会看到，AbtractAutowireCapableBeanFactory 的 doCreateBean(...) 方法中可以看到
 	 *
 	 * Return the (raw) singleton object registered under the given name.
 	 * <p>Checks already instantiated singletons and also allows for an early
@@ -212,30 +214,31 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-		// <1> 从单例缓存中获取 beanName 对应的 Bean 【一级缓存】
+		// <1> **【一级 Map】**从单例缓存 `singletonObjects` 中获取 beanName 对应的 Bean
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 缓存中不存在当前 Bean，且当前 beanName 正在创建
+		// <2> 如果**一级 Map**中不存在，且当前 beanName 正在创建
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
-			// <2> 加锁
+			// <2.1> 对 `singletonObjects` 加锁
 			synchronized (this.singletonObjects) {
-				// <3> 从 `earlySingletonObjects` 集合中获取 【二级缓存】
+				// <2.2> **【二级 Map】**从 `earlySingletonObjects` 集合中获取，里面会保存从 **三级 Map** 获取到的正在初始化的 Bean
 				singletonObject = this.earlySingletonObjects.get(beanName);
-				// `earlySingletonObjects` 中没有，且允许提前创建
+				// <2.3> 如果**二级 Map** 中不存在，且允许提前创建
 				if (singletonObject == null && allowEarlyReference) {
-					// <4> 从 `singletonFactories` 中获取对应的 ObjectFactory 对象 【三级缓存】
+					// <2.3.1> **【三级 Map】**从 `singletonFactories` 中获取对应的 ObjectFactory 实现类
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+					// 如果从**三级 Map** 中存在对应的对象，则进行下面的处理
 					if (singletonFactory != null) {
-						// 获得 bean
+						// <2.3.2> 调用 ObjectFactory#getOject() 方法，获取目标 Bean 对象（早期半成品）
 						singletonObject = singletonFactory.getObject();
-						// 添加 bean 到 `earlySingletonObjects` 中 【从“三级缓存”获取到则设置到“二级缓存”中】
+						// <2.3.3> 将目标对象放入**二级 Map**
 						this.earlySingletonObjects.put(beanName, singletonObject);
-						// 从 `singletonFactories` 中移除对应的 ObjectFactory 【从“三级缓存”中移除】
+						// <2.3.4> 从**三级 Map**移除 beanName
 						this.singletonFactories.remove(beanName);
 					}
 				}
 			}
 		}
-		// <5> 返回从缓存中获取的 Bean 对象
+		// <3> 返回从缓存中获取的对象
 		return singletonObject;
 	}
 
@@ -251,10 +254,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Assert.notNull(beanName, "Bean name must not be null");
 		// 全局加锁
 		synchronized (this.singletonObjects) {
-			// <1> 从缓存中再检查一遍
-	        // 因为 singleton 模式其实就是复用已经创建的 bean 所以这步骤必须检查
+			// <1> 从 `singletonObjects` 单例 Bean 的缓存中获取 Bean（再检查一遍），存在则直接返回，否则开始创建
 			Object singletonObject = this.singletonObjects.get(beanName);
-			// 为空，开始加载过程
 			if (singletonObject == null) {
 				if (this.singletonsCurrentlyInDestruction) {
 					throw new BeanCreationNotAllowedException(beanName,
@@ -264,7 +265,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
-				// <2> 加载前置处理，往 `singletonsCurrentlyInCreation` 添加该 `beanName`
+				// <2> 将 `beanName` 标记为单例模式正在创建
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
@@ -272,8 +273,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
-					// <3> 初始化 bean
-	                // 这个过程其实是调用 createBean() 方法
+					/**
+					 * <3> 创建 Bean，实际调用 {@link AbstractAutowireCapableBeanFactory#createBean(String, RootBeanDefinition, Object[])} 方法
+					 */
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -297,10 +299,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// <4> 后置处理，将上面第 `2` 步往 `singletonsCurrentlyInCreation` 添加的 `beanName` 移除，因为已经创建完成了嘛
+					// <4> 将 `beanName` 标记为不在创建中，照应第 `2` 步
 					afterSingletonCreation(beanName);
 				}
-				// <5> 如果是新创建的，并且创建成功了，则加入缓存中
+				// <5> 如果这里是新创建的单例模式 Bean，则在 `singletonObjects` 中进行缓存（无序），移除缓存的早期对象
+				// 并在 `registeredSingletons` 中保存 `beanName`，保证注册顺序
 				if (newSingleton) {
 					addSingleton(beanName, singletonObject);
 				}
@@ -460,7 +463,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	public void registerDependentBean(String beanName, String dependentBeanName) {
 		String canonicalName = canonicalName(beanName);
 
-		// 添加 <canonicalName, <dependentBeanName>> 到 `dependentBeanMap` 中
 		// 对应关系：beanName -> 依赖 beanName 的集合
 		synchronized (this.dependentBeanMap) {
 			Set<String> dependentBeans = this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
@@ -469,7 +471,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			}
 		}
 
-		// 添加 <dependentBeanName, <canonicalName>> 到 `dependenciesForBeanMap` 中
 		// 对应关系：beanName - > beanName 的依赖的集合
 		synchronized (this.dependenciesForBeanMap) {
 			Set<String> dependenciesForBean = this.dependenciesForBeanMap.computeIfAbsent(dependentBeanName, k -> new LinkedHashSet<>(8));
@@ -491,23 +492,24 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	private boolean isDependent(String beanName, String dependentBeanName, @Nullable Set<String> alreadySeen) {
-		// alreadySeen 已经检测的依赖 bean
+		// <1> `alreadySeen` 中已经检测过该 `beanName` 则直接返回 `false`
 		if (alreadySeen != null && alreadySeen.contains(beanName)) {
 			return false;
 		}
-		// 获取原始 `beanName`
+		// <2> 获取最终的 `beanName`，因为可能是别名，需要进行相关处理
 		String canonicalName = canonicalName(beanName);
-		// 获取依赖 `beanName` 的 Bean 集合
+		// <3> 从 `dependentBeanMap` 中获取依赖 `beanName` 的 Bean 集合
 		Set<String> dependentBeans = this.dependentBeanMap.get(canonicalName);
+		// <4> 没有 Bean 依赖该 `beanName`，也就不存在循环依赖，返回 `false`
 		if (dependentBeans == null) {
-			// 没有 Bean 依赖该 `beanName`
 			return false;
 		}
+		// <5> 依赖 `beanName` 的 Bean 们包含 `dependentBeanName`，表示出现循环依赖，返回 `true`
 		if (dependentBeans.contains(dependentBeanName)) {
 			// `beanName` 与 `dependentBeanName` 相互依赖
 			return true;
 		}
-		// 递归检测依赖，看是否出现循环依赖
+		// <6> 对依赖该 `beanName` 的 Bean 们进行检查，看它们是否与 `dependentBeanName` 存在依赖，递归处理
 		for (String transitiveDependency : dependentBeans) {
 			if (alreadySeen == null) {
 				alreadySeen = new HashSet<>();

@@ -46,8 +46,8 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	/**
 	 * Cache of singleton objects created by FactoryBeans: FactoryBean name to object.
 	 * 
-	 * 缓存 FactoryBean 创建的单例 Bean 对象的映射
-	 * 对应关系 beanName ===> Bean 对象
+	 * key：FactoryBean 的 `beanName`
+	 * value：FactoryBean#getObject() 返回的 Bean 对象
 	 */
 	private final Map<String, Object> factoryBeanObjectCache = new ConcurrentHashMap<>(16);
 
@@ -99,35 +99,36 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 */
 	protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
-		// <1> `factory` 为单例模式，且缓存中存在 `beanName` 对应的 Bean 对象
+		// <1> `factory` 为单例模式，且单例 Bean 缓存中存在 `beanName` 对应的 FactoryBean 对象
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) { // <1.1> 获取单例锁，保证安全
-				// <1.2> 从缓存中获取 FactoryBean 创建的 Bean 对象
+				// <1.2> 从 `factoryBeanObjectCache` 缓存中获取 FactoryBean#getObject() 创建的目标对象
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
-					// <1.3> 为空，则根据 `factory` 获取 Bean 对象
+					// <1.3> 则根据 `factory` 获取目标对象，调用 FactoryBean#getObject() 方法
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
-					// <1.4> 这里再进行一次校验，看是否在缓存中存在 FactoryBean 创建的 Bean 对象，如果有则优先从缓存中获取
+					// <1.4> 这里再进行一次校验，看是否在缓存中存在 FactoryBean 创建的目标对象，如果有则优先从缓存中获取
+					// 保证 FactoryBean#getObject() 只能被调用一次
+					// 没有的话，则对刚获取到的目标对象进行接下来的处理
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
 					if (alreadyThere != null) {
 						object = alreadyThere;
 					}
 					else {
-						// <1.5> 是否需要后续处理，这个 FactoryBean 不是用户定义的则需要
+						// <1.5> 是否需要后续处理，这个 FactoryBean 的 BeanDefinition 是否由 Spring 解析出来的，通常情况下都是
 						if (shouldPostProcess) {
-							// <1.5.1> 若该 Bean 处于创建中，则返回非处理对象，不需要进行下面的处理过程
+							// <1.5.1> 若该 Bean 处于创建中，则直接返回这个目标对象，不进行接下来的处理过程
 							if (isSingletonCurrentlyInCreation(beanName)) {
 								// Temporarily return non-post-processed object, not storing it yet..
 								return object;
 							}
-							// <1.5.2> 单例 Bean 的前置处理
-							// 默认实现将该 Bean 标志为当前正在创建
+							// <1.5.2> 前置处理，将 `beanName` 标志为正在创建
 							beforeSingletonCreation(beanName);
 							try {
-								// <1.5.3> 对从 FactoryBean 获取的对象进行后置处理，生成的对象将暴露给 bean 引用
-								// 默认实现不进行处理，在子类中会遍历 BeanPostProcessor，对该 Bean 进行处理
+								// <1.5.3> 对通过 FactoryBean 获取的目标对象进行后置处理
+								// 遍历所有的 BeanPostProcessor 的 postProcessAfterInitialization 方法（初始化的处理）
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -135,38 +136,39 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 										"Post-processing of FactoryBean's singleton object failed", ex);
 							}
 							finally {
-								// <1.5.4> 单例 Bean 的后置处理
-								// 默认实现是将该 Bean 标记为不在创建中
+								// <1.5.4> 后置处理，将 `beanName` 标志为不在创建中
 								afterSingletonCreation(beanName);
 							}
 						}
-						// <1.6> 如果 `singletonObjects` 缓存中包含了这个 `beanName`，表示获取到了 FactoryBean 对应的 Bean 对象
+						// <1.5> 如果缓存中存在 `beanName` 对应的 FactoryBean 对象
 						// 上面不是判断了吗？也可能在上面的处理过程会有所变化，所以这里在做一层判断
+						// 目的：缓存 FactoryBean 创建的目标对象，则需要保证 FactoryBean 本身这个对象存在缓存中
 						if (containsSingleton(beanName)) {
-							// <1.6.1> 将这个 FactoryBean 创建 Bean 对象保存至 `factoryBeanObjectCache`
+							// <1.5.1> 将这个 FactoryBean 创建的目标对象保存至 `factoryBeanObjectCache`
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}
 				}
-				// <1.7> 返回 FactoryBean 创建 Bean 对象
+				// <1.6> 返回 FactoryBean 创建的目标对象
 				return object;
 			}
 		}
-		// <2> `factory` 不是单例模式，或者缓存中没有 `beanName` 对应的 Bean 对象
+		// <2> `factory` 非单例模式，或单例 Bean 缓存中不存在 `beanName` 对应的 FactoryBean 对象
 		else {
-			// <2.1> 为空，则根据 `factory` 获取 Bean 对象
+			// <2.1> 则根据 `factory` 获取目标对象，调用 FactoryBean#getObject() 方法
 			Object object = doGetObjectFromFactoryBean(factory, beanName);
-			// <2.2> 是否需要后续处理，这个 FactoryBean 不是用户定义的则需要
+			// <2.2> 是否需要后续处理，这个 FactoryBean 的 BeanDefinition 是否由 Spring 解析出来的，通常情况下都是
 			if (shouldPostProcess) {
 				try {
-	                // <2.2.1> 对从 FactoryBean 获取的对象进行后置处理，生成的对象将暴露给 bean 引用
+					// <2.2.1> 对通过 FactoryBean 获取的目标对象进行后置处理
+					// 遍历所有的 BeanPostProcessor 的 postProcessAfterInitialization 方法（初始化的处理）
 					object = postProcessObjectFromFactoryBean(object, beanName);
 				}
 				catch (Throwable ex) {
 					throw new BeanCreationException(beanName, "Post-processing of FactoryBean's object failed", ex);
 				}
 			}
-			// <2.3> 返回 FactoryBean 创建 Bean 对象
+			// <2.3> 返回 FactoryBean 创建的目标对象，非单例模式不会进行缓存
 			return object;
 		}
 	}
