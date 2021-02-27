@@ -34,7 +34,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @since 05.12.2003
- * @see #refresh
+ * @see #refreshContextLoaderListener
  * @see ContextLoader#createWebApplicationContext
  * @see org.springframework.web.servlet.FrameworkServlet#createWebApplicationContext
  */

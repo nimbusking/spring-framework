@@ -108,10 +108,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	private boolean setMetadataReaderFactoryCalled = false;
 
+	/** 已处理过的 BeanDefinitionRegistry 的 ID */
 	private final Set<Integer> registriesPostProcessed = new HashSet<>();
 
+	/** 已处理过的 ConfigurableListableBeanFactory 的 ID */
 	private final Set<Integer> factoriesPostProcessed = new HashSet<>();
 
+	/** 用于扫描出 ConfigurationClass 中的 BeanDefinition 并注册 */
 	@Nullable
 	private ConfigurationClassBeanDefinitionReader reader;
 
@@ -252,6 +255,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
+		// CGLIB 提升
 		enhanceConfigurationClasses(beanFactory);
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
@@ -453,16 +457,17 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
 				// Set enhanced subclass of the user-specified bean class
+				// 通过类加载器获取这个 BeanDefinition 的 Class 对象
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
 				if (configClass != null) {
-					// 通过 CGLIB 创建一个代理类
+					// 通过 CGLIB 创建一个子类（代理类）
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 					if (configClass != enhancedClass) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(String.format("Replacing bean definition '%s' existing class '%s' with " +
 									"enhanced class '%s'", entry.getKey(), configClass.getName(), enhancedClass.getName()));
 						}
-						// 设置该 BeanDefinition 的 Class 对象为 CGLIB 代理类，用于帮助实现 AOP 特性
+						// 设置该 BeanDefinition 的 Class 对象为 CGLIB 子类（代理类），用于帮助实现 AOP 特性
 						beanDef.setBeanClass(enhancedClass);
 					}
 				}
