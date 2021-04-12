@@ -101,7 +101,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Nullable
 	public BeanDefinitionHolder decorate(
 			Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
-
+		// 根据标签名获取 BeanDefinitionDecorator 对象
 		BeanDefinitionDecorator decorator = findDecoratorForNode(node, parserContext);
 		return (decorator != null ? decorator.decorate(node, definition, parserContext) : null);
 	}
@@ -114,6 +114,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Nullable
 	private BeanDefinitionDecorator findDecoratorForNode(Node node, ParserContext parserContext) {
 		BeanDefinitionDecorator decorator = null;
+		// 获得元素名
 		String localName = parserContext.getDelegate().getLocalName(node);
 		if (node instanceof Element) {
 			decorator = this.decorators.get(localName);

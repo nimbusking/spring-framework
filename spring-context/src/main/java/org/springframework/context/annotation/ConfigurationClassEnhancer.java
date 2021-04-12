@@ -95,6 +95,9 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		/*
+		 * <1> 如果 Class 对象是 EnhancedConfiguration 的子类，表示已经被 CGLIB 提升，直接返回
+		 */
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +
@@ -106,6 +109,9 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		// <2> 创建一个 Enhancer 增强对象，用于创建代理对象，会设置相关属性
+		// 需要继承的父类为 `configClass`，需要实现 EnhancedConfiguration 接口
+		// <3> 通过刚创建的 Enhancer 创建代理对象，也就是生成一个子类，并返回
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",

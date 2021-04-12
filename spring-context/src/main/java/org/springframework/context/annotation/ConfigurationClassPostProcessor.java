@@ -255,8 +255,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
-		// CGLIB 提升
+		// 对带有 @Configuration 注解的 Bean 进行 CGLIB 提升
 		enhanceConfigurationClasses(beanFactory);
+		// 添加一个 ImportAwareBeanPostProcessor 处理器，帮助 EnhancedConfiguration 设置 BeanFactory
+		// CGLIB 提升的子类会实现 EnhancedConfiguration
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
@@ -416,11 +418,17 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * @see ConfigurationClassEnhancer
 	 */
 	public void enhanceConfigurationClasses(ConfigurableListableBeanFactory beanFactory) {
+		// <1> 创建一个 Map，用于保存带有 @Configuration 注解的 Bean
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
+		/**
+		 * <2>
+		 * 因为 {@link this#postProcessBeanDefinitionRegistry } 方法中已经解析出所有的 BeanDefinition 了
+		 * 所以这里获取到当前 BeanFactory 中所有的 BeanDefinition，然后遍历进行处理
+		 */
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
 			/*
-			 * 如果配置了 @Configuration 注解
+			 * <2.1> 如果带有 @Configuration 注解的 Bean，则保存至 `configBeanDefs` 集合中
 			 */
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
 				/*
@@ -431,7 +439,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 							beanName + "' since it is not stored in an AbstractBeanDefinition subclass");
 				}
 				/*
-				 * 如果这个 Bean 已经初始化了
+				 * 如果这个 Bean 已经初始化了，则提示这个 Bean 太早被创建
 				 */
 				else if (logger.isInfoEnabled() && beanFactory.containsSingleton(beanName)) {
 					logger.info("Cannot enhance @Configuration bean definition '" + beanName +
@@ -442,6 +450,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				configBeanDefs.put(beanName, (AbstractBeanDefinition) beanDef);
 			}
 		}
+		// <3> 如果 `configBeanDefs` 为空
 		if (configBeanDefs.isEmpty()) {
 			// nothing to enhance -> return immediately
 			/*
@@ -451,23 +460,28 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		ConfigurationClassEnhancer enhancer = new ConfigurationClassEnhancer();
+		/*
+		 * <4> 遍历需要被 CGLIB 提升的 BeanDefinition，进行处理
+		 */
 		for (Map.Entry<String, AbstractBeanDefinition> entry : configBeanDefs.entrySet()) {
 			AbstractBeanDefinition beanDef = entry.getValue();
 			// If a @Configuration class gets proxied, always proxy the target class
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
 				// Set enhanced subclass of the user-specified bean class
-				// 通过类加载器获取这个 BeanDefinition 的 Class 对象
+				// <4.1> 通过类加载器获取这个 BeanDefinition 的 Class 对象
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
 				if (configClass != null) {
-					// 通过 CGLIB 创建一个子类（代理类）
+					// <4.2> 通过 CGLIB 创建一个代理类 `enhancedClass`，
+					// 也就是目标类的子类，并实现了 EnhancedConfiguration 接口
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
+					// <4.3> 如果 `enhancedClass` 是新创建的代理类
 					if (configClass != enhancedClass) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(String.format("Replacing bean definition '%s' existing class '%s' with " +
 									"enhanced class '%s'", entry.getKey(), configClass.getName(), enhancedClass.getName()));
 						}
-						// 设置该 BeanDefinition 的 Class 对象为 CGLIB 子类（代理类），用于帮助实现 AOP 特性
+						// 则设置该 BeanDefinition 的 Class 对象为代理类，用于帮助实现 AOP 特性
 						beanDef.setBeanClass(enhancedClass);
 					}
 				}

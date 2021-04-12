@@ -1493,6 +1493,7 @@ public class BeanDefinitionParserDelegate {
 		NamedNodeMap attributes = ele.getAttributes();
 		for (int i = 0; i < attributes.getLength(); i++) {
 			Node node = attributes.item(i);
+			// 例如 <aop:scoped-proxy /> 子标签，对应 ScopedProxyBeanDefinitionDecorator 装饰器
 			finalDefinition = decorateIfRequired(node, finalDefinition, containingBd);
 		}
 
@@ -1526,7 +1527,7 @@ public class BeanDefinitionParserDelegate {
 			// <2> 获取相应的处理器
 			NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 			if (handler != null) {
-				// <3> 进行装饰处理
+				// <3> 进行装饰处理，例如 <aop:scoped-proxy /> 子标签，对应 ScopedProxyBeanDefinitionDecorator 装饰器
 				BeanDefinitionHolder decorated =
 						handler.decorate(node, originalDef, new ParserContext(this.readerContext, this, containingBd));
 				if (decorated != null) {

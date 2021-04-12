@@ -116,6 +116,7 @@ public abstract class AopProxyUtils {
 	 * @see DecoratingProxy
 	 */
 	static Class<?>[] completeProxiedInterfaces(AdvisedSupport advised, boolean decoratingProxy) {
+		// <1> 获取需要代理的接口（目标类实现的接口），放入 `specifiedInterfaces` 中
 		Class<?>[] specifiedInterfaces = advised.getProxiedInterfaces();
 		if (specifiedInterfaces.length == 0) {
 			// No user-specified interfaces: check whether target class is an interface.
@@ -130,6 +131,7 @@ public abstract class AopProxyUtils {
 				specifiedInterfaces = advised.getProxiedInterfaces();
 			}
 		}
+		// <2> 判断目标类实现的接口是否存在 SpringProxy|Advised|DecoratingProxy 接口，不存在需要添加一个
 		boolean addSpringProxy = !advised.isInterfaceProxied(SpringProxy.class);
 		boolean addAdvised = !advised.isOpaque() && !advised.isInterfaceProxied(Advised.class);
 		boolean addDecoratingProxy = (decoratingProxy && !advised.isInterfaceProxied(DecoratingProxy.class));
@@ -146,17 +148,22 @@ public abstract class AopProxyUtils {
 		Class<?>[] proxiedInterfaces = new Class<?>[specifiedInterfaces.length + nonUserIfcCount];
 		System.arraycopy(specifiedInterfaces, 0, proxiedInterfaces, 0, specifiedInterfaces.length);
 		int index = specifiedInterfaces.length;
+		// <3> 如果目标类实现的接口没有 SpringProxy，则添加一个
+		// 这样创建的代理对象就会实现这个接口，就能知道这个代理对象是否由 Spring 创建
 		if (addSpringProxy) {
 			proxiedInterfaces[index] = SpringProxy.class;
 			index++;
 		}
+		// 添加一个 Advised 接口
 		if (addAdvised) {
 			proxiedInterfaces[index] = Advised.class;
 			index++;
 		}
+		// 添加一个 DecoratingProxy 接口
 		if (addDecoratingProxy) {
 			proxiedInterfaces[index] = DecoratingProxy.class;
 		}
+		// <4> 返回需要代理的接口
 		return proxiedInterfaces;
 	}
 

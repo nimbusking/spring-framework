@@ -59,12 +59,20 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			/**
+			 * 又调用 {@link org.springframework.aop.framework.ReflectiveMethodInvocation#proceed()} 方法
+			 * 因为需要先把所有的前置处理器执行完，且目标方法执行后，才能执行 AfterThrowingAdvice 通知器
+			 */
 			return mi.proceed();
 		}
 		catch (Throwable ex) {
+			/*
+			 * 如果上面过程出现异常，且异常的类型能够匹配，那么执行 AfterThrowingAdvice 通知器
+			 */
 			if (shouldInvokeOnThrowing(ex)) {
 				invokeAdviceMethod(getJoinPointMatch(), null, ex);
 			}
+			// 抛出异常
 			throw ex;
 		}
 	}

@@ -44,9 +44,14 @@ public class AspectJAfterAdvice extends AbstractAspectJAdvice
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			/**
+			 * 又调用 {@link org.springframework.aop.framework.ReflectiveMethodInvocation#proceed()} 方法
+			 * 因为需要先把所有的前置处理器执行完，且目标方法执行后，才能执行 AfterAdvice 通知器，这里通过 finally 语句块
+			 */
 			return mi.proceed();
 		}
 		finally {
+			// 执行 AfterAdvice 通知器
 			invokeAdviceMethod(getJoinPointMatch(), null, null);
 		}
 	}

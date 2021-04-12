@@ -77,27 +77,33 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	/** Whether the Advisors are already filtered for the specific target class. */
 	private boolean preFiltered = false;
 
-	/** The AdvisorChainFactory to use. */
+	/** The AdvisorChainFactory to use. Advisor 链路器工厂，用于获取某个方法所匹配的所有 MethodInterceptor 拦截对象 */
 	AdvisorChainFactory advisorChainFactory = new DefaultAdvisorChainFactory();
 
-	/** Cache with Method as key and advisor chain List as value. */
+	/** Cache with Method as key and advisor chain List as value. 根据方法缓存 MethodInterceptor */
 	private transient Map<MethodCacheKey, List<Object>> methodCache;
 
 	/**
 	 * Interfaces to be implemented by the proxy. Held in List to keep the order
 	 * of registration, to create JDK proxy with specified order of interfaces.
+	 *
+	 * 保存目标对象所实现的所有接口
 	 */
 	private List<Class<?>> interfaces = new ArrayList<>();
 
 	/**
 	 * List of Advisors. If an Advice is added, it will be wrapped
 	 * in an Advisor before being added to this List.
+	 *
+	 * 添加的 Advisor 数组，集合保存便于空间扩展
 	 */
 	private List<Advisor> advisors = new ArrayList<>();
 
 	/**
 	 * Array updated on changes to the advisors list, which is easier
 	 * to manipulate internally.
+	 * 添加 `advisors` 时生成的数组
+	 * 因为获取 `advisors` 非常频繁，且需要转换成数组，这里在添加的时候直接保存在这个数组里面，避免了每次集合转数组的性能损耗
 	 */
 	private Advisor[] advisorArray = new Advisor[0];
 
@@ -334,12 +340,16 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		}
 		if (!CollectionUtils.isEmpty(advisors)) {
 			for (Advisor advisor : advisors) {
+				// 如果是 IntroductionAdvisor 对象
 				if (advisor instanceof IntroductionAdvisor) {
+					// 通过 IntroductionAdvisor 实现的 IntroductionInfo 获取接口
+					// 将这些接口添加至 `interfaces`（不会重复添加）
 					validateIntroductionAdvisor((IntroductionAdvisor) advisor);
 				}
 				Assert.notNull(advisor, "Advisor must not be null");
 				this.advisors.add(advisor);
 			}
+			// 将 `advisors` 集合转换成 `advisorArray` 数组
 			updateAdvisorArray();
 			adviceChanged();
 		}
@@ -477,13 +487,26 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 * @return a List of MethodInterceptors (may also include InterceptorAndDynamicMethodMatchers)
 	 */
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, @Nullable Class<?> targetClass) {
+		// <1> 创建一个方法缓存 Key
 		MethodCacheKey cacheKey = new MethodCacheKey(method);
+		// <2> 尝试从缓存中获取
 		List<Object> cached = this.methodCache.get(cacheKey);
+		// 缓存未命中，则进行下一步处理
 		if (cached == null) {
+			/*
+			 * <3> 获取能够应用于该方法的所有拦截器（有序）
+			 * 筛选出能够应用于该方法的所有 Advisor，并获取对应的 MethodInterceptor，也就是 Advice（如果不是方法拦截器则会包装成对应的 MethodInterceptor）
+			 * 因为 Advisor 是排好序的，所以返回的 MethodInterceptor 也是有序的
+			 *
+			 * 为什么 `cached` 使用 `List<Object>` 存储？
+			 * 因为有些元素是 MethodInterceptor 和 MethodMatcher 的包装对象，并不是 MethodInterceptor
+			 */
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
 					this, method, targetClass);
+			// <4> 将该方法对应的拦截器链路放入缓存
 			this.methodCache.put(cacheKey, cached);
 		}
+		// <5> 返回能够应用于该方法的所有拦截器（有序）
 		return cached;
 	}
 

@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeAdvice, Serializable {
 
+	/** 前置通知 */
 	private final MethodBeforeAdvice advice;
 
 
@@ -52,7 +53,12 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		// 执行 MethodBeforeAdvice 通知器
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+		/**
+		 * 又调用 {@link org.springframework.aop.framework.ReflectiveMethodInvocation#proceed()} 方法
+		 * 继续执行后面的通知器和目标方法执行
+		 */
 		return mi.proceed();
 	}
 

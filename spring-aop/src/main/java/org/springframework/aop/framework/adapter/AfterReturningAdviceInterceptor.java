@@ -52,8 +52,14 @@ public class AfterReturningAdviceInterceptor implements MethodInterceptor, After
 
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		/**
+		 * 又调用 {@link org.springframework.aop.framework.ReflectiveMethodInvocation#proceed()} 方法
+		 * 因为需要先把所有的前置处理器执行完，且目标方法执行后，才能执行 AfterReturningAdvice 通知器
+		 */
 		Object retVal = mi.proceed();
+		// 执行 AfterReturningAdvice
 		this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
+		// 返回目标方法的执行结果
 		return retVal;
 	}
 
