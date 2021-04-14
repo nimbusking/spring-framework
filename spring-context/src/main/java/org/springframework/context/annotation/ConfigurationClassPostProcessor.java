@@ -474,6 +474,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				if (configClass != null) {
 					// <4.2> 通过 CGLIB 创建一个代理类 `enhancedClass`，
 					// 也就是目标类的子类，并实现了 EnhancedConfiguration 接口
+					// 设置了 BeanMethodInterceptor 和 BeanFactoryAwareMethodInterceptor 两个拦截器
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 					// <4.3> 如果 `enhancedClass` 是新创建的代理类
 					if (configClass != enhancedClass) {
