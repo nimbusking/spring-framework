@@ -75,8 +75,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.context.support.*;
-import org.springframework.context.annotation.*;
 
 /**
  * Abstract bean factory superclass that implements default bean creation,
