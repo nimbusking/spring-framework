@@ -44,10 +44,14 @@ import org.springframework.util.CollectionUtils;
 @Configuration
 public abstract class AbstractTransactionManagementConfiguration implements ImportAware {
 
+	/**
+	 * {@link EnableTransactionManagement} 注解的元信息
+	 */
 	@Nullable
 	protected AnnotationAttributes enableTx;
 
 	/**
+	 * 事务管理器
 	 * Default transaction manager, as configured through a {@link TransactionManagementConfigurer}.
 	 */
 	@Nullable

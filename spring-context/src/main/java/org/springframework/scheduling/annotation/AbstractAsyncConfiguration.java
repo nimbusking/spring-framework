@@ -46,7 +46,7 @@ public abstract class AbstractAsyncConfiguration implements ImportAware {
 	protected AnnotationAttributes enableAsync;
 
 	@Nullable
-	protected Supplier<Executor> executor;
+	protected Supplier<Executor> 	executor;
 
 	@Nullable
 	protected Supplier<AsyncUncaughtExceptionHandler> exceptionHandler;

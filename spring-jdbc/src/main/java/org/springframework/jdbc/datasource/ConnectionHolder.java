@@ -46,18 +46,29 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	 */
 	public static final String SAVEPOINT_NAME_PREFIX = "SAVEPOINT_";
 
-
 	@Nullable
 	private ConnectionHandle connectionHandle;
 
+	/**
+	 * 数据库连接
+	 */
 	@Nullable
 	private Connection currentConnection;
 
+	/**
+	 * 当前状态是否处于一个事务中
+	 */
 	private boolean transactionActive = false;
 
+	/**
+	 * 是否支持保存点
+	 */
 	@Nullable
 	private Boolean savepointsSupported;
 
+	/**
+	 * 当前保存点的数量
+	 */
 	private int savepointCounter = 0;
 
 
