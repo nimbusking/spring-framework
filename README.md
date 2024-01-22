@@ -1,6 +1,6 @@
 # <img src="src/docs/asciidoc/images/spring-framework.png" width="80" height="80"> Spring Framework 源码分析
 **本fork项目gradle编译版本为：6.9.3，7.0+版本编译可能会存在相关组件不适配，导致编译不通过问题。编译JDK 1.8.0_202** 
-[**gradle 6.9.3官网下载地址**](https://objects.githubusercontent.com/github-production-release-asset-2e65be/696192900/84129796-5bd3-4b6a-9d9e-388648fb2fe9?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240121T051444Z&X-Amz-Expires=300&X-Amz-Signature=8ce77e8730b4dd6241d985074fb063a4994edc2f01cf817644c52cbd7112111a&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=696192900&response-content-disposition=attachment%3B%20filename%3Dgradle-6.9.3-bin.zip&response-content-type=application%2Foctet-stream)
+[**gradle 6.9.3官网下载地址**](https://services.gradle.org/distributions/)
 
 当前主要分支的版本为 **5.1.14.RELEASE**
 
