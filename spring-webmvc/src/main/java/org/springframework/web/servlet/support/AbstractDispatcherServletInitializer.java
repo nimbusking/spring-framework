@@ -61,6 +61,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
 		// 调用父类启动的逻辑
+		// 主要在给定的ServletContext中注册：ContextLoaderListener实例，该实例主要用于获取加载spring IOC配置信息相关
 		super.onStartup(servletContext);
 		// 注册 DispacherServlt
 		registerDispatcherServlet(servletContext);
@@ -86,7 +87,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
 
-		// <2> 创建 FrameworkServlet 对象
+		// <2> 创建 DispatchServlet 对象，FrameworkServlet 是其父类
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.notNull(dispatcherServlet, "createDispatcherServlet(WebApplicationContext) must not return null");
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
