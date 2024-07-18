@@ -172,6 +172,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		}
 		setEnvironment(environment);
 		// 设置资源加载对象，会尝试加载出 CandidateComponentsIndex 对象（保存 `META-INF/spring.components` 文件中的内容，不存在该对象为 `null`）
+		// 实现在父类中
 		setResourceLoader(resourceLoader);
 	}
 

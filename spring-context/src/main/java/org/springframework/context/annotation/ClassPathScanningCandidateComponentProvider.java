@@ -270,7 +270,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	public void setResourceLoader(@Nullable ResourceLoader resourceLoader) {
 		this.resourcePatternResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
 		this.metadataReaderFactory = new CachingMetadataReaderFactory(resourceLoader);
-		// 获取所有 `META-INF/spring.components` 文件中的内容
+		// 获取所有 `META-INF/spring.components` 文件中的内容。这也是 @Indexed注解的具体加载机制
 		this.componentsIndex = CandidateComponentsIndexLoader.loadIndex(this.resourcePatternResolver.getClassLoader());
 	}
 
