@@ -259,6 +259,7 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		// 该方法通过ContextLoaderListener.contextInitialized开始调用，这是servlet容器定义的初始化入口
 		// <1> 若已经存在 ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE 对应的 WebApplicationContext 对象，则抛出 IllegalStateException 异常。
 	    // 例如，在 web.xml 中存在多个 ContextLoader
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
@@ -295,7 +296,7 @@ public class ContextLoader {
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
-					// <4.3> 配置 context 对象，并进行刷新
+					// <4.3> 【核心】 配置 context 对象，并进行刷新
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
@@ -418,7 +419,8 @@ public class ContextLoader {
 
 		// <4> 对 context 进行定制化处理
 		customizeContext(sc, wac);
-		// <5> 刷新 context ，执行初始化
+		// <5> 【实际对象是XmlWebApplicationContext，改refresh方法定义在AbstractApplicationContext中】
+		// 刷新 context ，执行初始化
 		wac.refresh();
 	}
 
