@@ -1,6 +1,6 @@
 # <img src="src/docs/asciidoc/images/spring-framework.png" width="80" height="80"> Spring Framework 源码分析
-**本fork项目gradle编译版本为：5.5.1，高版本gradle(包括7.0+)版本项目构建、编译可能会存在相关组件不适配，导致编译不通过问题。编译JDK 1.8.0_202** 
-[**gradle 5.5.1官网下载地址**](https://services.gradle.org/distributions/)
+**本fork项目gradle编译版本为：5.6.4，高版本gradle(包括7.0+)版本项目构建、编译可能会存在相关组件不适配，导致编译不通过问题。编译JDK 1.8.0_431** 
+[**gradle 5.6.4官网下载地址**](https://services.gradle.org/distributions/)
 
 当前主要分支的版本为 **5.1.14.RELEASE**
 
