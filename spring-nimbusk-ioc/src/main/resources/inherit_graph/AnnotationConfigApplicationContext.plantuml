@@ -1,0 +1,52 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractApplicationContext
+interface AliasRegistry << interface >>
+class AnnotationConfigApplicationContext
+interface AnnotationConfigRegistry << interface >>
+interface ApplicationContext << interface >>
+interface ApplicationEventPublisher << interface >>
+interface AutoCloseable << interface >>
+interface BeanDefinitionRegistry << interface >>
+interface BeanFactory << interface >>
+interface Closeable << interface >>
+interface  ConfigurableApplicationContext  << interface >>
+note left: SPI 接口，由大多数（不是全部）应用程序上下文实现。\n除了界面中的 ApplicationContext 应用程序上下文客户端方法外，\n还提供用于配置应用程序上下文的工具。
+class DefaultResourceLoader
+interface EnvironmentCapable << interface >>
+annotation FunctionalInterface << annotation >>
+class GenericApplicationContext
+interface HierarchicalBeanFactory << interface >>
+interface Lifecycle << interface >>
+interface ListableBeanFactory << interface >>
+interface MessageSource << interface >>
+interface ResourceLoader << interface >>
+interface ResourcePatternResolver << interface >>
+
+AbstractApplicationContext          -[#008200,dashed]-^  ConfigurableApplicationContext     
+AbstractApplicationContext          -[#000082,plain]-^  DefaultResourceLoader              
+AnnotationConfigApplicationContext  -[#008200,dashed]-^  AnnotationConfigRegistry           
+AnnotationConfigApplicationContext  -[#000082,plain]-^  GenericApplicationContext          
+ApplicationContext                  -[#008200,plain]-^  ApplicationEventPublisher          
+ApplicationContext                  -[#008200,plain]-^  EnvironmentCapable                 
+ApplicationContext                  -[#008200,plain]-^  HierarchicalBeanFactory            
+ApplicationContext                  -[#008200,plain]-^  ListableBeanFactory                
+ApplicationContext                  -[#008200,plain]-^  MessageSource                      
+ApplicationContext                  -[#008200,plain]-^  ResourcePatternResolver            
+ApplicationEventPublisher           -[#999900,dotted]-  FunctionalInterface                
+BeanDefinitionRegistry              -[#008200,plain]-^  AliasRegistry                      
+Closeable                           -[#008200,plain]-^  AutoCloseable                      
+ConfigurableApplicationContext      -[#008200,plain]-^  ApplicationContext                 
+ConfigurableApplicationContext      -[#008200,plain]-^  Closeable                          
+ConfigurableApplicationContext      -[#008200,plain]-^  Lifecycle                          
+DefaultResourceLoader               -[#008200,dashed]-^  ResourceLoader                     
+GenericApplicationContext           -[#000082,plain]-^  AbstractApplicationContext         
+GenericApplicationContext           -[#008200,dashed]-^  BeanDefinitionRegistry             
+HierarchicalBeanFactory             -[#008200,plain]-^  BeanFactory                        
+ListableBeanFactory                 -[#008200,plain]-^  BeanFactory                        
+ResourcePatternResolver             -[#008200,plain]-^  ResourceLoader                     
+@enduml

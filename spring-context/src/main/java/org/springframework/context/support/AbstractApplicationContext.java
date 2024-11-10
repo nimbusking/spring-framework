@@ -536,7 +536,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// <5> 对 `beanFactory` 在进行一些后期的加工，交由子类进行扩展
 				postProcessBeanFactory(beanFactory);
 
-				// <6> 执行 BeanFactoryPostProcessor 处理器，包含 BeanDefinitionRegistryPostProcessor 处理器
+				// <6> 执行 BeanFactoryPostProcessor 处理器，包含初始化 BeanDefinitionRegistryPostProcessor 处理器
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// <7> 对 BeanPostProcessor 处理器进行初始化，并添加至 BeanFactory 中
@@ -554,7 +554,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// <11> 将所有 ApplicationListener 监听器添加至 `applicationEventMulticaster` 事件广播器，如果已有事件则进行广播
 				registerListeners();
 
-				// <12> 设置 ConversionService 类型转换器，**初始化**所有还未初始化的 Bean（不是抽象、单例模式、不是懒加载方式）
+				// <12> 设置 ConversionService 类型转换器，**初始化**所有还未初始化的 Bean（不是抽象、不是懒加载方式，是单例模式的）
 				finishBeanFactoryInitialization(beanFactory);
 
 				// <13> 刷新上下文的最后一步工作，会发布 ContextRefreshedEvent 上下文完成刷新事件

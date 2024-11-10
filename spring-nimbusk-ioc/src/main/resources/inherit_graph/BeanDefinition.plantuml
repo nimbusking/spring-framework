@@ -1,0 +1,31 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractBeanDefinition
+interface AnnotatedBeanDefinition << interface >>
+class AnnotatedGenericBeanDefinition
+interface AttributeAccessor << interface >>
+interface BeanDefinition << interface >>
+interface BeanMetadataElement << interface >>
+class ChildBeanDefinition
+class GenericBeanDefinition
+class RootBeanDefinition
+class ScannedGenericBeanDefinition
+
+AbstractBeanDefinition          -[#008200,dashed]-^  AttributeAccessor              
+AbstractBeanDefinition          -[#008200,dashed]-^  BeanDefinition                 
+AbstractBeanDefinition          -[#008200,dashed]-^  BeanMetadataElement            
+AnnotatedBeanDefinition         -[#008200,plain]-^  BeanDefinition                 
+AnnotatedGenericBeanDefinition  -[#008200,dashed]-^  AnnotatedBeanDefinition        
+AnnotatedGenericBeanDefinition  -[#000082,plain]-^  GenericBeanDefinition          
+BeanDefinition                  -[#008200,plain]-^  AttributeAccessor              
+BeanDefinition                  -[#008200,plain]-^  BeanMetadataElement            
+ChildBeanDefinition             -[#000082,plain]-^  AbstractBeanDefinition         
+GenericBeanDefinition           -[#000082,plain]-^  AbstractBeanDefinition         
+RootBeanDefinition              -[#000082,plain]-^  AbstractBeanDefinition         
+ScannedGenericBeanDefinition    -[#008200,dashed]-^  AnnotatedBeanDefinition        
+ScannedGenericBeanDefinition    -[#000082,plain]-^  GenericBeanDefinition          
+@enduml

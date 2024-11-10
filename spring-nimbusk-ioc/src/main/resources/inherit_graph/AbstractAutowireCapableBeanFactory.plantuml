@@ -1,0 +1,31 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractAutowireCapableBeanFactory
+class AbstractBeanFactory
+interface AliasRegistry << interface >>
+interface AutowireCapableBeanFactory << interface >>
+interface BeanFactory << interface >>
+interface ConfigurableBeanFactory << interface >>
+class DefaultSingletonBeanRegistry
+class FactoryBeanRegistrySupport
+interface HierarchicalBeanFactory << interface >>
+class SimpleAliasRegistry
+interface SingletonBeanRegistry << interface >>
+
+AbstractAutowireCapableBeanFactory  -[#000082,plain]-^  AbstractBeanFactory                
+AbstractAutowireCapableBeanFactory  -[#008200,dashed]-^  AutowireCapableBeanFactory         
+AbstractBeanFactory                 -[#008200,dashed]-^  ConfigurableBeanFactory            
+AbstractBeanFactory                 -[#000082,plain]-^  FactoryBeanRegistrySupport         
+AutowireCapableBeanFactory          -[#008200,plain]-^  BeanFactory                        
+ConfigurableBeanFactory             -[#008200,plain]-^  HierarchicalBeanFactory            
+ConfigurableBeanFactory             -[#008200,plain]-^  SingletonBeanRegistry              
+DefaultSingletonBeanRegistry        -[#000082,plain]-^  SimpleAliasRegistry                
+DefaultSingletonBeanRegistry        -[#008200,dashed]-^  SingletonBeanRegistry              
+FactoryBeanRegistrySupport          -[#000082,plain]-^  DefaultSingletonBeanRegistry       
+HierarchicalBeanFactory             -[#008200,plain]-^  BeanFactory                        
+SimpleAliasRegistry                 -[#008200,dashed]-^  AliasRegistry                      
+@enduml

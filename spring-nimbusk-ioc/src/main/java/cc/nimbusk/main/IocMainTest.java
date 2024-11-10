@@ -13,7 +13,7 @@ public class IocMainTest {
 	public static void main(String[] args) {
 		ApplicationContext context = new AnnotationConfigApplicationContext(IocMainTest.class);
 		HelloWordService helloWordService = context.getBean(HelloWordService.class);
-		helloWordService.sayHello();
+		helloWordService.sayHello("NimbusK");
 	}
 
 }

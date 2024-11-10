@@ -84,8 +84,11 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 调用构造函数，初始化准备工作
 		this();
+		// 注册配置类
 		register(componentClasses);
+		// IOC容器的刷新接口，整个IOC的核心初始化方法
 		refresh();
 	}
 

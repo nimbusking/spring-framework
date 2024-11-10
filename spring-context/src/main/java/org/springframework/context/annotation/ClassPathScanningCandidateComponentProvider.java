@@ -268,7 +268,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@Override
 	public void setResourceLoader(@Nullable ResourceLoader resourceLoader) {
+		// 注册ResourcePatternResolver，匹配例如新的资源前缀 “classpath*：“
 		this.resourcePatternResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+		// 缓存接口的MetadataReaderFactory实现，为每个 Spring Resource 句柄（即每个 “.class” 文件）缓存一个MetadataReader实例。
 		this.metadataReaderFactory = new CachingMetadataReaderFactory(resourceLoader);
 		// 获取所有 `META-INF/spring.components` 文件中的内容。这也是 @Indexed注解的具体加载机制
 		this.componentsIndex = CandidateComponentsIndexLoader.loadIndex(this.resourcePatternResolver.getClassLoader());

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class HelloWordService {
 
-	public void sayHello() {
-		System.out.println("Hello World");
+	public void sayHello(String name) {
+		System.out.println("Hello World:" + name);
 	}
 
 }
