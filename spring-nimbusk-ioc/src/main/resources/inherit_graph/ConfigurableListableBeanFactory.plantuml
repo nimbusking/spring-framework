@@ -1,0 +1,23 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+interface AutowireCapableBeanFactory << interface >>
+interface BeanFactory << interface >>
+interface ConfigurableBeanFactory << interface >>
+interface ConfigurableListableBeanFactory << interface >>
+interface HierarchicalBeanFactory << interface >>
+interface ListableBeanFactory << interface >>
+interface SingletonBeanRegistry << interface >>
+
+AutowireCapableBeanFactory       -[#008200,plain]-^  BeanFactory                     
+ConfigurableBeanFactory          -[#008200,plain]-^  HierarchicalBeanFactory         
+ConfigurableBeanFactory          -[#008200,plain]-^  SingletonBeanRegistry           
+ConfigurableListableBeanFactory  -[#008200,plain]-^  AutowireCapableBeanFactory      
+ConfigurableListableBeanFactory  -[#008200,plain]-^  ConfigurableBeanFactory         
+ConfigurableListableBeanFactory  -[#008200,plain]-^  ListableBeanFactory             
+HierarchicalBeanFactory          -[#008200,plain]-^  BeanFactory                     
+ListableBeanFactory              -[#008200,plain]-^  BeanFactory                     
+@enduml

@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan("cc.nimbusk")
-public class IocMainTest {
+public class IocAnnotationMainTest {
 
 	public static void main(String[] args) {
-		ApplicationContext context = new AnnotationConfigApplicationContext(IocMainTest.class);
+		ApplicationContext context = new AnnotationConfigApplicationContext(IocAnnotationMainTest.class);
 		HelloWordService helloWordService = context.getBean(HelloWordService.class);
 		helloWordService.sayHello("NimbusK");
 	}

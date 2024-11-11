@@ -1,0 +1,87 @@
+@startuml
+participant Actor
+note over AbstractApplicationContext:这个过程主要是向ConfigurableListableBeanFactory\n做一些初始化及Bean工厂中注册BeanPostProcessor
+Actor -> AbstractApplicationContext : prepareBeanFactory
+
+activate AbstractApplicationContext
+AbstractApplicationContext -> AbstractApplicationContext:setBeanClassLoader设置ClassLoder
+
+create StandardBeanExpressionResolver
+AbstractApplicationContext -> StandardBeanExpressionResolver : new
+note right:设置 BeanExpressionResolver 表达式语言处理器
+activate StandardBeanExpressionResolver
+StandardBeanExpressionResolver --> AbstractApplicationContext
+deactivate StandardBeanExpressionResolver
+
+create ResourceEditorRegistrar
+AbstractApplicationContext -> ResourceEditorRegistrar : new 添加一个默认的 PropertyEditorRegistrar 属性编辑器
+activate ResourceEditorRegistrar
+ResourceEditorRegistrar --> AbstractApplicationContext
+deactivate ResourceEditorRegistrar
+AbstractApplicationContext -> ConfigurableBeanFactory : addPropertyEditorRegistrar
+activate ConfigurableBeanFactory
+ConfigurableBeanFactory --> AbstractApplicationContext
+deactivate ConfigurableBeanFactory
+
+create ApplicationContextAwareProcessor
+AbstractApplicationContext -> ApplicationContextAwareProcessor : new 添加一个 BeanPostProcessor 处理器，ApplicationContextAwareProcessor，初始化 Bean 的前置处理
+note left:这个 BeanPostProcessor 其实是对几种 Aware 接口的处理，调用其 setXxx 方法
+activate ApplicationContextAwareProcessor
+ApplicationContextAwareProcessor --> AbstractApplicationContext
+deactivate ApplicationContextAwareProcessor
+AbstractApplicationContext -> ConfigurableBeanFactory : addBeanPostProcessor
+activate ConfigurableBeanFactory
+ConfigurableBeanFactory --> AbstractApplicationContext
+deactivate ConfigurableBeanFactory
+
+create ApplicationListenerDetector
+AbstractApplicationContext -> ApplicationListenerDetector : new 添加一个 BeanPostProcessor 处理器，ApplicationListenerDetector，用于装饰监听器
+activate ApplicationListenerDetector
+ApplicationListenerDetector --> AbstractApplicationContext
+deactivate ApplicationListenerDetector
+AbstractApplicationContext -> ConfigurableBeanFactory : addBeanPostProcessor
+activate ConfigurableBeanFactory
+ConfigurableBeanFactory --> AbstractApplicationContext
+deactivate ConfigurableBeanFactory
+alt 存在
+AbstractApplicationContext -> BeanFactory : containsBean
+activate BeanFactory
+BeanFactory --> AbstractApplicationContext
+deactivate BeanFactory
+create LoadTimeWeaverAwareProcessor
+AbstractApplicationContext -> LoadTimeWeaverAwareProcessor : new 增加对 AspectJ 的支持，AOP 相关的PostProcessor
+activate LoadTimeWeaverAwareProcessor
+LoadTimeWeaverAwareProcessor --> AbstractApplicationContext
+deactivate LoadTimeWeaverAwareProcessor
+AbstractApplicationContext -> ConfigurableBeanFactory : addBeanPostProcessor
+end
+== 下面几个就是：注册几个 ApplicationContext 上下文默认的 Bean 对象 ==
+activate ConfigurableBeanFactory
+ConfigurableBeanFactory --> AbstractApplicationContext
+deactivate ConfigurableBeanFactory
+AbstractApplicationContext -> HierarchicalBeanFactory : containsLocalBean
+activate HierarchicalBeanFactory
+HierarchicalBeanFactory --> AbstractApplicationContext
+deactivate HierarchicalBeanFactory
+AbstractApplicationContext -> SingletonBeanRegistry : registerSingleton 注册的：ConfigurableEnvironment
+activate SingletonBeanRegistry
+SingletonBeanRegistry --> AbstractApplicationContext
+deactivate SingletonBeanRegistry
+AbstractApplicationContext -> HierarchicalBeanFactory : containsLocalBean
+activate HierarchicalBeanFactory
+HierarchicalBeanFactory --> AbstractApplicationContext
+deactivate HierarchicalBeanFactory
+AbstractApplicationContext -> SingletonBeanRegistry : registerSingleton 注册的一个系统Properties属性的Map
+activate SingletonBeanRegistry
+SingletonBeanRegistry --> AbstractApplicationContext
+deactivate SingletonBeanRegistry
+AbstractApplicationContext -> HierarchicalBeanFactory : containsLocalBean
+activate HierarchicalBeanFactory
+HierarchicalBeanFactory --> AbstractApplicationContext
+deactivate HierarchicalBeanFactory
+AbstractApplicationContext -> SingletonBeanRegistry : registerSingleton 注册一个系统环境变量的Map
+activate SingletonBeanRegistry
+SingletonBeanRegistry --> AbstractApplicationContext
+deactivate SingletonBeanRegistry
+return
+@enduml

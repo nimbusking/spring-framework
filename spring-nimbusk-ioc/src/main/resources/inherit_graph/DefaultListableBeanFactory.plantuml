@@ -4,28 +4,32 @@
 top to bottom direction
 skinparam linetype ortho
 
+class AbstractApplicationContext
 class AbstractAutowireCapableBeanFactory
 class AbstractBeanFactory
 interface AliasRegistry << interface >>
+interface ApplicationContext << interface >>
 interface AutowireCapableBeanFactory << interface >>
 interface BeanDefinitionRegistry << interface >>
 interface BeanFactory << interface >>
 interface ConfigurableBeanFactory << interface >>
 interface ConfigurableListableBeanFactory << interface >>
+note left:这个接口下文要看
 class DefaultListableBeanFactory
 class DefaultSingletonBeanRegistry
 class FactoryBeanRegistrySupport
 interface HierarchicalBeanFactory << interface >>
 interface ListableBeanFactory << interface >>
-interface Serializable << interface >>
 class SimpleAliasRegistry
 interface SingletonBeanRegistry << interface >>
-annotation SuppressWarnings << annotation >>
 
+AbstractApplicationContext          -[#008200,dashed]-^  ApplicationContext                 
 AbstractAutowireCapableBeanFactory  -[#000082,plain]-^  AbstractBeanFactory                
 AbstractAutowireCapableBeanFactory  -[#008200,dashed]-^  AutowireCapableBeanFactory         
 AbstractBeanFactory                 -[#008200,dashed]-^  ConfigurableBeanFactory            
 AbstractBeanFactory                 -[#000082,plain]-^  FactoryBeanRegistrySupport         
+ApplicationContext                  -[#008200,plain]-^  HierarchicalBeanFactory            
+ApplicationContext                  -[#008200,plain]-^  ListableBeanFactory                
 AutowireCapableBeanFactory          -[#008200,plain]-^  BeanFactory                        
 BeanDefinitionRegistry              -[#008200,plain]-^  AliasRegistry                      
 ConfigurableBeanFactory             -[#008200,plain]-^  HierarchicalBeanFactory            
@@ -36,8 +40,6 @@ ConfigurableListableBeanFactory     -[#008200,plain]-^  ListableBeanFactory
 DefaultListableBeanFactory          -[#000082,plain]-^  AbstractAutowireCapableBeanFactory 
 DefaultListableBeanFactory          -[#008200,dashed]-^  BeanDefinitionRegistry             
 DefaultListableBeanFactory          -[#008200,dashed]-^  ConfigurableListableBeanFactory    
-DefaultListableBeanFactory          -[#008200,dashed]-^  Serializable                       
-DefaultListableBeanFactory          -[#999900,dotted]-  SuppressWarnings                   
 DefaultSingletonBeanRegistry        -[#000082,plain]-^  SimpleAliasRegistry                
 DefaultSingletonBeanRegistry        -[#008200,dashed]-^  SingletonBeanRegistry              
 FactoryBeanRegistrySupport          -[#000082,plain]-^  DefaultSingletonBeanRegistry       

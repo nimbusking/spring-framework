@@ -1,0 +1,1 @@
+插件SequenceDiagram生成文件，作为基础plantuml模板（导出后修改）

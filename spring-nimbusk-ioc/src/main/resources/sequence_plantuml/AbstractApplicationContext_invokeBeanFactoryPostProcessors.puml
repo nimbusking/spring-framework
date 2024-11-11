@@ -1,0 +1,176 @@
+@startuml
+
+participant Actor
+Actor -> AbstractApplicationContext : invokeBeanFactoryPostProcessors
+activate AbstractApplicationContext
+AbstractApplicationContext -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+
+alt 判断beanFactory instanceof BeanDefinitionRegistry
+    note over PostProcessorRegistrationDelegate:执行当前 Spring 应用上下文和底层 BeanFactory 容器中的 BeanFactoryPostProcessor、BeanDefinitionRegistryPostProcessor 们的处理
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanDefinitionRegistryPostProcessor : postProcessBeanDefinitionRegistry
+    activate BeanDefinitionRegistryPostProcessor
+    BeanDefinitionRegistryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanDefinitionRegistryPostProcessor
+    PostProcessorRegistrationDelegate -> ListableBeanFactory : getBeanNamesForType
+    activate ListableBeanFactory
+    ListableBeanFactory --> PostProcessorRegistrationDelegate
+    deactivate ListableBeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : isTypeMatch
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : sortPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanDefinitionRegistryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanDefinitionRegistryPostProcessor : postProcessBeanDefinitionRegistry
+    activate BeanDefinitionRegistryPostProcessor
+    BeanDefinitionRegistryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanDefinitionRegistryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> ListableBeanFactory : getBeanNamesForType
+    activate ListableBeanFactory
+    ListableBeanFactory --> PostProcessorRegistrationDelegate
+    deactivate ListableBeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : isTypeMatch
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : sortPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanDefinitionRegistryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanDefinitionRegistryPostProcessor : postProcessBeanDefinitionRegistry
+    activate BeanDefinitionRegistryPostProcessor
+    BeanDefinitionRegistryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanDefinitionRegistryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> ListableBeanFactory : getBeanNamesForType
+    activate ListableBeanFactory
+    ListableBeanFactory --> PostProcessorRegistrationDelegate
+    deactivate ListableBeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : sortPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanDefinitionRegistryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanDefinitionRegistryPostProcessor : postProcessBeanDefinitionRegistry
+    activate BeanDefinitionRegistryPostProcessor
+    BeanDefinitionRegistryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanDefinitionRegistryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> ListableBeanFactory : getBeanNamesForType
+    activate ListableBeanFactory
+    ListableBeanFactory --> PostProcessorRegistrationDelegate
+    deactivate ListableBeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : isTypeMatch
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> BeanFactory : isTypeMatch
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : sortPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : sortPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactory : getBean
+    activate BeanFactory
+    BeanFactory --> PostProcessorRegistrationDelegate
+    deactivate BeanFactory
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate : invokeBeanFactoryPostProcessors
+    activate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor : postProcessBeanFactory
+    activate BeanFactoryPostProcessor
+    BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+    deactivate BeanFactoryPostProcessor
+    PostProcessorRegistrationDelegate --> PostProcessorRegistrationDelegate
+    deactivate PostProcessorRegistrationDelegate
+    PostProcessorRegistrationDelegate -> ConfigurableListableBeanFactory : clearMetadataCache
+    activate ConfigurableListableBeanFactory
+    ConfigurableListableBeanFactory --> PostProcessorRegistrationDelegate
+    deactivate ConfigurableListableBeanFactory
+    PostProcessorRegistrationDelegate --> AbstractApplicationContext
+    deactivate PostProcessorRegistrationDelegate
+else 不是
+    note over PostProcessorRegistrationDelegate:执行当前 Spring 应用上下文中的 BeanFactoryPostProcessor 处理器的 postProcessBeanFactory(beanFactory) 方法
+    PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate
+end
+
+
+return
+@enduml
