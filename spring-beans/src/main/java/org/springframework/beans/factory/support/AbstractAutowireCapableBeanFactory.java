@@ -596,10 +596,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					/**
 					 * <2.2> 对 RootBeanDefinition（合并后）进行加工处理
 					 * 调用所有 {@link MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition}
-					 * 【重要】例如有下面两个处理器：
+					 * 【重要】例如有下面两个后置处理器：
 					 * 1. AutowiredAnnotationBeanPostProcessor 会先解析出 @Autowired 和 @Value 注解标注的属性的注入元信息，后续进行依赖注入；
 					 * 2. CommonAnnotationBeanPostProcessor 会先解析出 @Resource 注解标注的属性的注入元信息，后续进行依赖注入，
 					 * 它也会找到 @PostConstruct 和 @PreDestroy 注解标注的方法，并构建一个 LifecycleMetadata 对象，用于后续生命周期中的初始化和销毁
+					 *
+					 * {@link org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor }
+					 * {@link org.springframework.context.annotation.CommonAnnotationBeanPostProcessor }
 					 */
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
@@ -627,12 +630,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			/**
 			 * <3.2>
 			 * 创建一个 ObjectFactory 实现类，用于返回当前正在被创建的 `bean`，提前暴露，保存在 `singletonFactories` （**三级 Map**）缓存中
-			 *
 			 * 可以回到前面的 {@link AbstractBeanFactory#doGetBean#getSingleton(String)} 方法
 			 * 加载 Bean 的过程会先从缓存中获取单例 Bean，可以避免单例模式 Bean 循环依赖注入的问题
+			 * 在getEarlyBeanReference方法中支持了一个初始化的后置处理器，如对特定的类，使用特定的实现创建类代理。
+			 * {@link org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor }
 			 */
 			addSingletonFactory(beanName,
 					// ObjectFactory 实现类
+					//
 					() -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1015,6 +1020,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (!mbd.isSynthetic() // RootBeanDefinition 不是用户定义的（由 Spring 解析出来的）
 				&& hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				// SmartInstantiationAwareBeanPostProcessor 是用于扩展创建bean阶段的一个后置处理器
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
 					exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
@@ -1164,6 +1170,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
 			// Make sure bean class is actually resolved at this point.
 			// 如果 RootBeanDefinition 不是用户定义的（由 Spring 解析出来的），并且存在 InstantiationAwareBeanPostProcessor 处理器
+			// isSynthetic()属性，AOP那里用到的一个标签
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {

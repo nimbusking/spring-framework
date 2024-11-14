@@ -203,7 +203,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
-	 * 这里的三个 Map 可以解决**循环依赖注入**，在后续会看到，AbtractAutowireCapableBeanFactory 的 doCreateBean(...) 方法中可以看到
 	 *
 	 * Return the (raw) singleton object registered under the given name.
 	 * <p>Checks already instantiated singletons and also allows for an early
@@ -214,6 +213,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+		// 这里的三个 Map 可以解决**循环依赖注入**，在前面调用的后面会看到，AbstractAutowireCapableBeanFactory 的 doCreateBean(...) 方法中可以看到
 		// <1> **【一级 Map】**从单例缓存 `singletonObjects` 中获取 beanName 对应的 Bean
 		Object singletonObject = this.singletonObjects.get(beanName);
 		// <2> 如果**一级 Map**中不存在，且当前 beanName 正在创建

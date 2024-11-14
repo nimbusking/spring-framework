@@ -242,12 +242,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
 		// <1> 获取 `beanName`
-		// 因为入参 `name` 可能是别名，也可能是 FactoryBean 类型 Bean 的名称（`&` 开头，需要去除）
+		// 因为入参 `name` 可能是别名，也可能是 FactoryBean 类型 Bean 的名称（`&` 开头，需要裁切）
 		// 所以需要获取真实的 beanName
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
-		// <2> 先从缓存（仅缓存单例 Bean ）中获取 Bean 对象，这里缓存指的是 `3` 个 Map
+		// <2> 先从缓存（仅缓存单例 Bean ）中获取 Bean 对象，这里缓存指的是 3 个 Map缓存
 		// 缓存中也可能是正在初始化的 Bean，可以避免**循环依赖注入**引起的问题
 		// Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
@@ -270,7 +270,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
-			// <4> 如果**非单例模式**下的 Bean 正在创建，这里又开始创建，表明存在循环依赖，则直接抛出异常
+			// <4> 如果**单例模式**下的 Bean 正在创建，这里又开始创建，表明存在循环依赖，则直接抛出异常
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
@@ -345,7 +345,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							// ObjectFactory 实现类
 							() -> {
 								try {
-									// **【核心】** 创建 Bean
+									// **【核心】** 创建 Bean，区分单例和原型模式的Bean，其中有一段处理代理对象判断的逻辑
 									return createBean(beanName, mbd, args);
 								} catch (BeansException ex) {
 									// Explicitly remove instance from singleton cache: It might have been put there
@@ -424,6 +424,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (requiredType != null && !requiredType.isInstance(bean)) {
 			try {
 				// <10.1> 通过类型转换机制，将 Bean 转换成 `requiredType` 类型
+				// 底层通过反射转换的，Spring作了一层抽象封装，交付给 ```org.springframework.core.convert.converter.GenericConverter``` 其子实现类相关转换
 				T convertedBean = getTypeConverter().convertIfNecessary(bean, requiredType);
 				// <10.2> 转换后的 Bean 为空则抛出异常
 				if (convertedBean == null) {
@@ -1087,9 +1088,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @param beanName the name of the bean
 	 */
 	protected boolean isPrototypeCurrentlyInCreation(String beanName) {
+		// prototypesCurrentlyInCreation 是一个记录当前线程所持有的beanName的ThreadLocal变量
 		Object curVal = this.prototypesCurrentlyInCreation.get();
-		return (curVal != null && (curVal.equals(beanName) // 相等
-				|| (curVal instanceof Set && ((Set<?>) curVal).contains(beanName)))); // 包含
+		return (curVal != null && (curVal.equals(beanName)
+				|| (curVal instanceof Set && ((Set<?>) curVal).contains(beanName))));
 	}
 
 	/**
