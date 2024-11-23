@@ -31,4 +31,5 @@ rootProject.children.each {project ->
 }
 
 include 'spring-nimbusk-ioc'
+include 'spring-nimbusk-web'
 

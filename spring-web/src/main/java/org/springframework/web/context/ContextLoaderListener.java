@@ -91,6 +91,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 * @see #contextDestroyed(ServletContextEvent)
 	 */
 	public ContextLoaderListener(WebApplicationContext context) {
+		// 调用父类ContextLoader初始化
 		super(context);
 	}
 
@@ -100,6 +101,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// <1> 初始化 Root WebApplicationContext
 		initWebApplicationContext(event.getServletContext());
 	}
 
@@ -109,6 +111,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		// <2> 销毁 Root WebApplicationContext
 		closeWebApplicationContext(event.getServletContext());
 		ContextCleanupListener.cleanupAttributes(event.getServletContext());
 	}

@@ -1,0 +1,517 @@
+sequenceDiagram
+    autonumber
+actor User
+User ->> DispatcherServlet : doDispatch
+activate DispatcherServlet
+DispatcherServlet ->> WebAsyncUtils : getAsyncManager
+activate WebAsyncUtils
+alt asyncManagerAttr instanceof WebAsyncManager
+note right of WebAsyncUtils : Empty
+end
+alt asyncManager == null
+WebAsyncUtils ->> WebAsyncManager : new
+activate WebAsyncManager
+WebAsyncManager -->> WebAsyncUtils : #32; 
+deactivate WebAsyncManager
+end
+WebAsyncUtils -->> DispatcherServlet : #32; 
+deactivate WebAsyncUtils
+DispatcherServlet ->> DispatcherServlet : checkMultipart
+activate DispatcherServlet
+DispatcherServlet ->> MultipartResolver : isMultipart
+activate MultipartResolver
+MultipartResolver -->> DispatcherServlet : #32; 
+deactivate MultipartResolver
+alt this.multipartResolver != null && this.multipartResolver.isMultipart(request)
+DispatcherServlet ->> WebUtils : getNativeRequest
+activate WebUtils
+alt requiredType != null
+alt requiredType.isInstance(request)
+else 
+alt request instanceof ServletRequestWrapper
+WebUtils ->> WebUtils : getNativeRequest
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+end
+end
+end
+WebUtils -->> DispatcherServlet : #32; 
+deactivate WebUtils
+alt WebUtils.getNativeRequest(request, MultipartHttpServletRequest.class) != null
+alt request.getDispatcherType().equals(DispatcherType.REQUEST)
+note right of DispatcherServlet : Empty
+end
+else 
+DispatcherServlet ->> DispatcherServlet : hasMultipartException
+activate DispatcherServlet
+alt error instanceof MultipartException
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt hasMultipartException(request)
+else 
+DispatcherServlet ->> MultipartResolver : resolveMultipart
+activate MultipartResolver
+MultipartResolver -->> DispatcherServlet : #32; 
+deactivate MultipartResolver
+alt request.getAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE) != null
+else 
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+DispatcherServlet ->> DispatcherServlet : getHandler
+activate DispatcherServlet
+alt this.handlerMappings != null
+loop this.handlerMappings
+DispatcherServlet ->> HandlerMapping : getHandler
+activate HandlerMapping
+HandlerMapping -->> DispatcherServlet : #32; 
+deactivate HandlerMapping
+alt handler != null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt mappedHandler == null
+DispatcherServlet ->> DispatcherServlet : noHandlerFound
+activate DispatcherServlet
+alt pageNotFoundLogger.isWarnEnabled()
+DispatcherServlet ->> DispatcherServlet : getRequestUri
+activate DispatcherServlet
+alt uri == null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+end
+alt this.throwExceptionIfNoHandlerFound
+DispatcherServlet ->> DispatcherServlet : getRequestUri
+activate DispatcherServlet
+alt uri == null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+DispatcherServlet ->> ServletServerHttpRequest : new
+activate ServletServerHttpRequest
+ServletServerHttpRequest -->> DispatcherServlet : #32; 
+deactivate ServletServerHttpRequest
+else 
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+end
+DispatcherServlet ->> DispatcherServlet : getHandlerAdapter
+activate DispatcherServlet
+alt this.handlerAdapters != null
+loop this.handlerAdapters
+DispatcherServlet ->> HandlerAdapter : supports
+activate HandlerAdapter
+HandlerAdapter -->> DispatcherServlet : #32; 
+deactivate HandlerAdapter
+alt adapter.supports(handler)
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt isGet || "HEAD".equals(method)
+DispatcherServlet ->> HandlerAdapter : getLastModified
+activate HandlerAdapter
+HandlerAdapter -->> DispatcherServlet : #32; 
+deactivate HandlerAdapter
+DispatcherServlet ->> ServletWebRequest : new
+activate ServletWebRequest
+ServletWebRequest -->> DispatcherServlet : #32; 
+deactivate ServletWebRequest
+DispatcherServlet ->> ServletWebRequest : checkNotModified
+activate ServletWebRequest
+ServletWebRequest ->> ServletWebRequest : checkNotModified
+activate ServletWebRequest
+alt this.notModified || (response != null && HttpStatus.OK.value() != response.getStatus())
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest ->> ServletWebRequest : validateIfUnmodifiedSince
+activate ServletWebRequest
+alt lastModifiedTimestamp < 0
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest ->> ServletWebRequest : parseDateHeader
+activate ServletWebRequest
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt ifUnmodifiedSince == -1
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt validateIfUnmodifiedSince(lastModifiedTimestamp)
+alt this.notModified && response != null
+note right of ServletWebRequest : Empty
+end
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest ->> ServletWebRequest : validateIfNoneMatch
+activate ServletWebRequest
+alt !StringUtils.hasLength(etag)
+note right of ServletWebRequest : Empty
+end
+alt !ifNoneMatch.hasMoreElements()
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest ->> ServletWebRequest : padEtagIfNecessary
+activate ServletWebRequest
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt etag.startsWith("W/")
+note right of ServletWebRequest : Empty
+end
+alt StringUtils.hasLength(etagMatcher.group()) && etag.equals(etagMatcher.group(3))
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt !validated
+ServletWebRequest ->> ServletWebRequest : validateIfModifiedSince
+activate ServletWebRequest
+alt lastModifiedTimestamp < 0
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest ->> ServletWebRequest : parseDateHeader
+activate ServletWebRequest
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt ifModifiedSince == -1
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+end
+alt response != null
+alt this.notModified
+alt isHttpGetOrHead
+else 
+note right of ServletWebRequest : Empty
+end
+note right of ServletWebRequest : Empty
+end
+alt isHttpGetOrHead
+ServletWebRequest ->> ServletWebRequest : parseDateValue
+activate ServletWebRequest
+alt headerValue == null
+note right of ServletWebRequest : Empty
+end
+alt headerValue.length() >= 3
+loop DATE_FORMATS
+note right of ServletWebRequest : Empty
+end
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+alt lastModifiedTimestamp > 0 && parseDateValue(response.getHeader(LAST_MODIFIED)) == -1
+note right of ServletWebRequest : Empty
+end
+alt StringUtils.hasLength(etag) && response.getHeader(ETAG) == null
+ServletWebRequest ->> ServletWebRequest : padEtagIfNecessary
+activate ServletWebRequest
+alt !StringUtils.hasLength(etag)
+note right of ServletWebRequest : Empty
+end
+alt (etag.startsWith("\"") || etag.startsWith("W/\"")) && etag.endsWith("\"")
+note right of ServletWebRequest : Empty
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+end
+end
+end
+ServletWebRequest -->> ServletWebRequest : #32; 
+deactivate ServletWebRequest
+ServletWebRequest -->> DispatcherServlet : #32; 
+deactivate ServletWebRequest
+alt new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+alt !mappedHandler.applyPreHandle(processedRequest, response)
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> HandlerAdapter : handle
+activate HandlerAdapter
+HandlerAdapter -->> DispatcherServlet : #32; 
+deactivate HandlerAdapter
+alt asyncManager.isConcurrentHandlingStarted()
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> DispatcherServlet : applyDefaultViewName
+activate DispatcherServlet
+DispatcherServlet ->> ModelAndView : hasView
+activate ModelAndView
+ModelAndView -->> DispatcherServlet : #32; 
+deactivate ModelAndView
+alt mv != null && !mv.hasView()
+DispatcherServlet ->> DispatcherServlet : getDefaultViewName
+activate DispatcherServlet
+alt this.viewNameTranslator != null
+DispatcherServlet ->> RequestToViewNameTranslator : getViewName
+activate RequestToViewNameTranslator
+RequestToViewNameTranslator -->> DispatcherServlet : #32; 
+deactivate RequestToViewNameTranslator
+else 
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt defaultViewName != null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+DispatcherServlet ->> DispatcherServlet : processDispatchResult
+activate DispatcherServlet
+alt exception != null
+alt exception instanceof ModelAndViewDefiningException
+else 
+alt mappedHandler != null
+else 
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> DispatcherServlet : processHandlerException
+activate DispatcherServlet
+alt this.handlerExceptionResolvers != null
+loop this.handlerExceptionResolvers
+alt exMv != null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+alt exMv != null
+alt exMv.isEmpty()
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> ModelAndView : hasView
+activate ModelAndView
+ModelAndView -->> DispatcherServlet : #32; 
+deactivate ModelAndView
+alt !exMv.hasView()
+DispatcherServlet ->> DispatcherServlet : getDefaultViewName
+activate DispatcherServlet
+alt this.viewNameTranslator != null
+DispatcherServlet ->> RequestToViewNameTranslator : getViewName
+activate RequestToViewNameTranslator
+RequestToViewNameTranslator -->> DispatcherServlet : #32; 
+deactivate RequestToViewNameTranslator
+else 
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt defaultViewName != null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+alt logger.isTraceEnabled()
+note right of DispatcherServlet : Empty
+end
+alt logger.isDebugEnabled()
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> WebUtils : exposeErrorRequestAttributes
+activate WebUtils
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+alt servletName != null
+WebUtils ->> WebUtils : exposeRequestAttributeIfNotPresent
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+end
+WebUtils -->> DispatcherServlet : #32; 
+deactivate WebUtils
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+end
+end
+DispatcherServlet ->> ModelAndView : wasCleared
+activate ModelAndView
+ModelAndView -->> DispatcherServlet : #32; 
+deactivate ModelAndView
+alt mv != null && !mv.wasCleared()
+DispatcherServlet ->> DispatcherServlet : render
+activate DispatcherServlet
+alt this.localeResolver != null
+DispatcherServlet ->> LocaleResolver : resolveLocale
+activate LocaleResolver
+LocaleResolver -->> DispatcherServlet : #32; 
+deactivate LocaleResolver
+else 
+note right of DispatcherServlet : Empty
+end
+alt viewName != null
+DispatcherServlet ->> DispatcherServlet : resolveViewName
+activate DispatcherServlet
+alt this.viewResolvers != null
+loop this.viewResolvers
+DispatcherServlet ->> ViewResolver : resolveViewName
+activate ViewResolver
+ViewResolver -->> DispatcherServlet : #32; 
+deactivate ViewResolver
+alt view != null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt view == null
+note right of DispatcherServlet : Empty
+end
+else 
+alt view == null
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+alt logger.isTraceEnabled()
+note right of DispatcherServlet : Empty
+end
+alt mv.getStatus() != null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> View : render
+activate View
+View -->> DispatcherServlet : #32; 
+deactivate View
+alt logger.isDebugEnabled()
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt errorView
+DispatcherServlet ->> WebUtils : clearErrorRequestAttributes
+activate WebUtils
+WebUtils -->> DispatcherServlet : #32; 
+deactivate WebUtils
+end
+else 
+alt logger.isTraceEnabled()
+note right of DispatcherServlet : Empty
+end
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet ->> WebAsyncUtils : getAsyncManager
+activate WebAsyncUtils
+alt asyncManagerAttr instanceof WebAsyncManager
+note right of WebAsyncUtils : Empty
+end
+alt asyncManager == null
+WebAsyncUtils ->> WebAsyncManager : new
+activate WebAsyncManager
+WebAsyncManager -->> WebAsyncUtils : #32; 
+deactivate WebAsyncManager
+end
+WebAsyncUtils -->> DispatcherServlet : #32; 
+deactivate WebAsyncUtils
+alt WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()
+note right of DispatcherServlet : Empty
+end
+alt mappedHandler != null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+DispatcherServlet ->> DispatcherServlet : triggerAfterCompletion
+activate DispatcherServlet
+alt mappedHandler != null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+DispatcherServlet ->> DispatcherServlet : triggerAfterCompletion
+activate DispatcherServlet
+alt mappedHandler != null
+note right of DispatcherServlet : Empty
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+alt asyncManager.isConcurrentHandlingStarted()
+alt mappedHandler != null
+note right of DispatcherServlet : Empty
+end
+else 
+alt multipartRequestParsed
+DispatcherServlet ->> DispatcherServlet : cleanupMultipart
+activate DispatcherServlet
+alt this.multipartResolver != null
+DispatcherServlet ->> WebUtils : getNativeRequest
+activate WebUtils
+alt requiredType != null
+alt requiredType.isInstance(request)
+else 
+alt request instanceof ServletRequestWrapper
+WebUtils ->> WebUtils : getNativeRequest
+activate WebUtils
+WebUtils -->> WebUtils : #32; 
+deactivate WebUtils
+end
+end
+end
+WebUtils -->> DispatcherServlet : #32; 
+deactivate WebUtils
+alt multipartRequest != null
+DispatcherServlet ->> MultipartResolver : cleanupMultipart
+activate MultipartResolver
+MultipartResolver -->> DispatcherServlet : #32; 
+deactivate MultipartResolver
+end
+end
+DispatcherServlet -->> DispatcherServlet : #32; 
+deactivate DispatcherServlet
+end
+end
+deactivate DispatcherServlet

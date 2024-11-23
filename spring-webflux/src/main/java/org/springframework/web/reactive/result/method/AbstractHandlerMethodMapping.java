@@ -152,7 +152,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public void afterPropertiesSet() {
-
+		// <x> 初始化处理器的方法们
 		initHandlerMethods();
 
 		// Total includes detected mappings + explicit registrations via registerMapping..
@@ -170,10 +170,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handlerMethodsInitialized(Map)
 	 */
 	protected void initHandlerMethods() {
+		// <1> 遍历 Bean ，逐个处理
 		String[] beanNames = obtainApplicationContext().getBeanNamesForType(Object.class);
 
 		for (String beanName : beanNames) {
+			// 排除目标代理类，AOP 相关，可查看注释
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
+				// <1.1> 获得 Bean 对应的 Class 对象
 				Class<?> beanType = null;
 				try {
 					beanType = obtainApplicationContext().getType(beanName);
@@ -184,11 +187,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 						logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 					}
 				}
+				// <1.2> 判断 Bean 是否为处理器（例如有 @Controller 或者 @RequestMapping 注解）
 				if (beanType != null && isHandler(beanType)) {
+					// <1.3> 扫描处理器方法
 					detectHandlerMethods(beanName);
 				}
 			}
 		}
+		// <2> 初始化处理器的方法们，目前是空方法，暂无具体的实现
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -197,16 +203,21 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param handler the bean name of a handler or a handler instance
 	 */
 	protected void detectHandlerMethods(final Object handler) {
+		// <1> 获得 Bean 对应的 Class 对象
 		Class<?> handlerType = (handler instanceof String ?
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
 
 		if (handlerType != null) {
+			// <2> 获得真实的 Class 对象，因为 `handlerType` 可能是代理类
 			final Class<?> userType = ClassUtils.getUserClass(handlerType);
+			// <3> 获得匹配的方法和对应的 Mapping 对象
+			// 创建该方法对应的 Mapping 对象，例如根据 @RequestMapping 注解创建 RequestMappingInfo 对象
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> getMappingForMethod(method, userType));
 			if (logger.isTraceEnabled()) {
 				logger.trace(formatMappings(userType, methods));
 			}
+			// <4> 遍历方法，逐个注册 HandlerMethod
 			methods.forEach((key, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(key, userType);
 				registerHandlerMethod(handler, invocableMethod, mapping);
@@ -285,21 +296,26 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public Mono<HandlerMethod> getHandlerInternal(ServerWebExchange exchange) {
+		// <1> 获取读锁
 		this.mappingRegistry.acquireReadLock();
 		try {
 			HandlerMethod handlerMethod;
 			try {
+				// <2> 获得 HandlerMethod 对象
 				handlerMethod = lookupHandlerMethod(exchange);
 			}
 			catch (Exception ex) {
 				return Mono.error(ex);
 			}
+			// <3> 进一步，获得一个新的 HandlerMethod 对象
 			if (handlerMethod != null) {
 				handlerMethod = handlerMethod.createWithResolvedBean();
 			}
+			// <4> 封装Mono对象
 			return Mono.justOrEmpty(handlerMethod);
 		}
 		finally {
+			// <5> 释放读锁
 			this.mappingRegistry.releaseReadLock();
 		}
 	}

@@ -1,0 +1,1468 @@
+@startuml
+participant Actor
+Actor -> DefaultListableBeanFactory : preInstantiateSingletons
+activate DefaultListableBeanFactory
+loop beanNames
+note over DefaultListableBeanFactory:顶层循环遍历所有beanNames
+DefaultListableBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition\n从容器中获取 beanName 相应的 RootBeanDefinition 对象
+activate AbstractBeanFactory
+AbstractBeanFactory --> DefaultListableBeanFactory
+deactivate AbstractBeanFactory
+
+alt !bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()
+note over DefaultListableBeanFactory:如果该 Bean 的定义为：不是抽象、单例模式、不是懒加载方式，则进行初始化
+DefaultListableBeanFactory -> AbstractBeanFactory : isFactoryBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+loop resolvedName != null
+alt resolvedName != null
+note right of SimpleAliasRegistry : Empty
+end
+note right of SimpleAliasRegistry : Empty
+end
+SimpleAliasRegistry --> AbstractBeanFactory
+deactivate SimpleAliasRegistry
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : isSingletonCurrentlyInCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt singletonObject == null && isSingletonCurrentlyInCreation(beanName)
+alt singletonObject == null && allowEarlyReference
+alt singletonFactory != null
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt beanInstance != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt !containsBeanDefinition(beanName) && getParentBeanFactory() instanceof ConfigurableBeanFactory
+AbstractBeanFactory -> ConfigurableBeanFactory : isFactoryBean
+activate ConfigurableBeanFactory
+ConfigurableBeanFactory --> AbstractBeanFactory
+deactivate ConfigurableBeanFactory
+end
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+alt mbd != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : isFactoryBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : predictBeanType
+activate AbstractBeanFactory
+alt targetType != null
+note right of AbstractBeanFactory : Empty
+end
+alt mbd.getFactoryMethodName() != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : resolveBeanClass
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> DefaultListableBeanFactory
+deactivate AbstractBeanFactory
+alt isFactoryBean(beanName)
+DefaultListableBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry --> AbstractBeanFactory
+deactivate SimpleAliasRegistry
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt sharedInstance != null && args == null
+alt logger.isTraceEnabled()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isSingletonCurrentlyInCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isSingletonCurrentlyInCreation(beanName)
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+AbstractBeanFactory -> AbstractBeanFactory : isPrototypeCurrentlyInCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt isPrototypeCurrentlyInCreation(beanName)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory != null && !containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : originalBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt name.startsWith(FACTORY_BEAN_PREFIX)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory instanceof AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt args != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+alt requiredType != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+end
+end
+end
+end
+alt !typeCheckOnly
+AbstractBeanFactory -> AbstractBeanFactory : markBeanAsCreated
+activate AbstractBeanFactory
+alt !this.alreadyCreated.contains(beanName)
+alt !this.alreadyCreated.contains(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : clearMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+alt mbd != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : checkMergedBeanDefinition
+activate AbstractBeanFactory
+alt mbd.isAbstract()
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt dependsOn != null
+loop dependsOn
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isDependent(beanName, dep)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : registerDependentBean
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> SimpleAliasRegistry
+deactivate DefaultSingletonBeanRegistry
+SimpleAliasRegistry --> DefaultSingletonBeanRegistry
+deactivate SimpleAliasRegistry
+alt !dependentBeans.add(dependentBeanName)
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+alt mbd.isSingleton()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+alt singletonObject == null
+alt this.singletonsCurrentlyInDestruction
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt logger.isDebugEnabled()
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : beforeSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt singletonObject == null
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+loop this.suppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : afterSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt newSingleton
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : addSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+end
+DefaultSingletonBeanRegistry -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : destroySingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory --> DefaultSingletonBeanRegistry
+deactivate AbstractBeanFactory
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt mbd.isPrototype()
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+alt curVal == null
+else 
+alt curVal instanceof String
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+alt curVal instanceof String
+else 
+alt curVal instanceof Set
+alt beanNameSet.isEmpty()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt scope == null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> Scope : get
+activate Scope
+Scope -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> Scope
+deactivate AbstractBeanFactory
+Scope --> AbstractBeanFactory
+deactivate Scope
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory -> AbstractBeanFactory : cleanupAfterBeanCreationFailure
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+alt requiredType != null && !requiredType.isInstance(bean)
+AbstractBeanFactory -> TypeConverter : convertIfNecessary
+activate TypeConverter
+TypeConverter --> AbstractBeanFactory
+deactivate TypeConverter
+alt convertedBean == null
+note right of AbstractBeanFactory : Empty
+end
+alt logger.isTraceEnabled()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> DefaultListableBeanFactory
+deactivate AbstractBeanFactory
+alt bean instanceof FactoryBean
+alt System.getSecurityManager() != null && factory instanceof SmartFactoryBean
+else 
+note right of DefaultListableBeanFactory : Empty
+end
+alt isEagerInit
+DefaultListableBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry --> AbstractBeanFactory
+deactivate SimpleAliasRegistry
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt sharedInstance != null && args == null
+alt logger.isTraceEnabled()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isSingletonCurrentlyInCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isSingletonCurrentlyInCreation(beanName)
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+AbstractBeanFactory -> AbstractBeanFactory : isPrototypeCurrentlyInCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt isPrototypeCurrentlyInCreation(beanName)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory != null && !containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : originalBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt name.startsWith(FACTORY_BEAN_PREFIX)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory instanceof AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt args != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+alt requiredType != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+end
+end
+end
+end
+alt !typeCheckOnly
+AbstractBeanFactory -> AbstractBeanFactory : markBeanAsCreated
+activate AbstractBeanFactory
+alt !this.alreadyCreated.contains(beanName)
+alt !this.alreadyCreated.contains(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : clearMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+alt mbd != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : checkMergedBeanDefinition
+activate AbstractBeanFactory
+alt mbd.isAbstract()
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt dependsOn != null
+loop dependsOn
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isDependent(beanName, dep)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : registerDependentBean
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> SimpleAliasRegistry
+deactivate DefaultSingletonBeanRegistry
+SimpleAliasRegistry --> DefaultSingletonBeanRegistry
+deactivate SimpleAliasRegistry
+alt !dependentBeans.add(dependentBeanName)
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+alt mbd.isSingleton()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+alt singletonObject == null
+alt this.singletonsCurrentlyInDestruction
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt logger.isDebugEnabled()
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : beforeSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt singletonObject == null
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+loop this.suppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : afterSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt newSingleton
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : addSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+end
+DefaultSingletonBeanRegistry -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : destroySingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory --> DefaultSingletonBeanRegistry
+deactivate AbstractBeanFactory
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt mbd.isPrototype()
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+alt curVal == null
+else 
+alt curVal instanceof String
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+alt curVal instanceof String
+else 
+alt curVal instanceof Set
+alt beanNameSet.isEmpty()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt scope == null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> Scope : get
+activate Scope
+Scope -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> Scope
+deactivate AbstractBeanFactory
+Scope --> AbstractBeanFactory
+deactivate Scope
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory -> AbstractBeanFactory : cleanupAfterBeanCreationFailure
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+alt requiredType != null && !requiredType.isInstance(bean)
+AbstractBeanFactory -> TypeConverter : convertIfNecessary
+activate TypeConverter
+TypeConverter --> AbstractBeanFactory
+deactivate TypeConverter
+alt convertedBean == null
+note right of AbstractBeanFactory : Empty
+end
+alt logger.isTraceEnabled()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> DefaultListableBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+else 
+DefaultListableBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry --> AbstractBeanFactory
+deactivate SimpleAliasRegistry
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt sharedInstance != null && args == null
+alt logger.isTraceEnabled()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isSingletonCurrentlyInCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isSingletonCurrentlyInCreation(beanName)
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+AbstractBeanFactory -> AbstractBeanFactory : isPrototypeCurrentlyInCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt isPrototypeCurrentlyInCreation(beanName)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory != null && !containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : originalBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : transformedBeanName
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt name.startsWith(FACTORY_BEAN_PREFIX)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt parentBeanFactory instanceof AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : doGetBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt args != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+alt requiredType != null
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+else 
+AbstractBeanFactory -> BeanFactory : getBean
+activate BeanFactory
+BeanFactory --> AbstractBeanFactory
+deactivate BeanFactory
+end
+end
+end
+end
+alt !typeCheckOnly
+AbstractBeanFactory -> AbstractBeanFactory : markBeanAsCreated
+activate AbstractBeanFactory
+alt !this.alreadyCreated.contains(beanName)
+alt !this.alreadyCreated.contains(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : clearMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+alt mbd != null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> AbstractBeanFactory : getBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getMergedBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : checkMergedBeanDefinition
+activate AbstractBeanFactory
+alt mbd.isAbstract()
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt dependsOn != null
+loop dependsOn
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : isDependent
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt isDependent(beanName, dep)
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : registerDependentBean
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> SimpleAliasRegistry : canonicalName
+activate SimpleAliasRegistry
+SimpleAliasRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> SimpleAliasRegistry
+deactivate DefaultSingletonBeanRegistry
+SimpleAliasRegistry --> DefaultSingletonBeanRegistry
+deactivate SimpleAliasRegistry
+alt !dependentBeans.add(dependentBeanName)
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : k ->
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+alt mbd.isSingleton()
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+alt singletonObject == null
+alt this.singletonsCurrentlyInDestruction
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt logger.isDebugEnabled()
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : beforeSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt singletonObject == null
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+loop this.suppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+alt recordSuppressedExceptions
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : afterSingletonCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt newSingleton
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : addSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+end
+end
+DefaultSingletonBeanRegistry -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : destroySingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory --> DefaultSingletonBeanRegistry
+deactivate AbstractBeanFactory
+DefaultSingletonBeanRegistry --> AbstractBeanFactory
+deactivate DefaultSingletonBeanRegistry
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt mbd.isPrototype()
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+alt curVal == null
+else 
+alt curVal instanceof String
+else 
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+alt curVal instanceof String
+else 
+alt curVal instanceof Set
+alt beanNameSet.isEmpty()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+else 
+alt scope == null
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory -> Scope : get
+activate Scope
+Scope -> AbstractBeanFactory : () ->
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : beforePrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : createBean
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : afterPrototypeCreation
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> Scope
+deactivate AbstractBeanFactory
+Scope --> AbstractBeanFactory
+deactivate Scope
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance
+activate AbstractBeanFactory
+alt BeanFactoryUtils.isFactoryDereference(name)
+alt beanInstance instanceof NullBean
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean)
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+alt !(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)
+note right of AbstractBeanFactory : Empty
+end
+alt mbd == null
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getCachedObjectForFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+alt object == null
+AbstractBeanFactory -> AbstractBeanFactory : containsBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+alt mbd == null && containsBeanDefinition(beanName)
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+AbstractBeanFactory -> FactoryBeanRegistrySupport : getObjectFromFactoryBean
+activate FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport --> AbstractBeanFactory
+deactivate FactoryBeanRegistrySupport
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+AbstractBeanFactory -> AbstractBeanFactory : cleanupAfterBeanCreationFailure
+activate AbstractBeanFactory
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+end
+alt requiredType != null && !requiredType.isInstance(bean)
+AbstractBeanFactory -> TypeConverter : convertIfNecessary
+activate TypeConverter
+TypeConverter --> AbstractBeanFactory
+deactivate TypeConverter
+alt convertedBean == null
+note right of AbstractBeanFactory : Empty
+end
+alt logger.isTraceEnabled()
+note right of AbstractBeanFactory : Empty
+end
+note right of AbstractBeanFactory : Empty
+end
+AbstractBeanFactory --> AbstractBeanFactory
+deactivate AbstractBeanFactory
+AbstractBeanFactory --> DefaultListableBeanFactory
+deactivate AbstractBeanFactory
+end
+end
+end
+loop beanNames
+DefaultListableBeanFactory -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : getSingleton
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : isSingletonCurrentlyInCreation
+activate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+alt singletonObject == null && isSingletonCurrentlyInCreation(beanName)
+alt singletonObject == null && allowEarlyReference
+alt singletonFactory != null
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+note right of DefaultSingletonBeanRegistry : Empty
+end
+DefaultSingletonBeanRegistry --> DefaultSingletonBeanRegistry
+deactivate DefaultSingletonBeanRegistry
+DefaultSingletonBeanRegistry --> DefaultListableBeanFactory
+deactivate DefaultSingletonBeanRegistry
+alt singletonInstance instanceof SmartInitializingSingleton
+alt System.getSecurityManager() != null
+else 
+DefaultListableBeanFactory -> SmartInitializingSingleton : afterSingletonsInstantiated
+activate SmartInitializingSingleton
+SmartInitializingSingleton --> DefaultListableBeanFactory
+deactivate SmartInitializingSingleton
+end
+end
+end
+return
+@enduml

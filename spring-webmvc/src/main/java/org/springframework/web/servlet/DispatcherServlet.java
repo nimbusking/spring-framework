@@ -285,6 +285,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// This is currently strictly internal and not meant to be customized
 		// by application developers.
 		try {
+			// 从 DispatcherServlet.properties 文件中加载默认的组件实现类
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		}
@@ -367,6 +368,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	public DispatcherServlet() {
 		super();
+		// 从 4.3 DispatcherServlet 开始，由于FrameworkServlet内置了对 OPTIONS 的支持，因此默认将此属性设置为 “true”
 		setDispatchOptionsRequest(true);
 	}
 
@@ -982,6 +984,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			Enumeration<?> attrNames = request.getAttributeNames();
 			while (attrNames.hasMoreElements()) {
 				String attrName = (String) attrNames.nextElement();
+				// this.cleanupAfterInclude == true || 以org.springframework.web.servlet开头
 				if (this.cleanupAfterInclude || attrName.startsWith(DEFAULT_STRATEGIES_PREFIX)) {
 					attributesSnapshot.put(attrName, request.getAttribute(attrName));
 				}
@@ -995,7 +998,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
-		// <4> FlashMap 的相关配置
+		// <4> FlashMap 的相关配置初始化，PS：处理重定向请求的时候会用到
 		if (this.flashMapManager != null) {
 			FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 			if (inputFlashMap != null) {
@@ -1010,7 +1013,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			doDispatch(request, response);
 		}
 		finally {
-			// <6> 异步处理相关
+			// <6> 异步请求相关，通过：WebAsyncManager来管理的
 			if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
 				// Restore the original attribute snapshot, in case of an include.
 				if (attributesSnapshot != null) {
@@ -1098,7 +1101,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// <4.1> 处理有 Last-Modified 请求头的场景
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
-				if (isGet || "HEAD".equals(method)) { // 不清楚为什么要判断方法类型为 'HEAD'
+				if (isGet || "HEAD".equals(method)) { // 这里对于HTTP的HEAD请求，SpringMVC处理和GET请求处理一致，没有单独起分支处理
 					// 获取请求中服务器端最后被修改时间
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
@@ -1146,14 +1149,14 @@ public class DispatcherServlet extends FrameworkServlet {
 			triggerAfterCompletion(processedRequest, response, mappedHandler, new NestedServletException("Handler processing failed", err));
 		}
 		finally {
-			// <13.1> Asyn
+			// <13.1> Async回调处理
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
 					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
 				}
 			}
-			// <13.1> 如果是上传请求则清理资源
+			// <13.1> 如果是上传请求则清理资源，清理
 			else {
 				// Clean up any resources used by a multipart request.
 				if (multipartRequestParsed) {

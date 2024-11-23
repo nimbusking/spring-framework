@@ -60,10 +60,10 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
-		// 调用父类启动的逻辑
-		// 主要在给定的ServletContext中注册：ContextLoaderListener实例，该实例主要用于获取加载spring IOC配置信息相关
+		// 调用父类启动的逻辑，创建WebApplicationContext相关
+		// 创建AnnotationConfigWebApplicationContext后，创建ContextLoaderListener实例，该实例持有AnnotationConfigWebApplicationContext，该实例主要用于获取加载spring IOC配置信息相关
 		super.onStartup(servletContext);
-		// 注册 DispacherServlt
+		// 注册 DispatcherServlet
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -109,7 +109,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 				registerServletFilter(servletContext, filter);
 			}
 		}
-
+		// <4> 执行可选的自定义的注册信息
 		customizeRegistration(registration);
 	}
 

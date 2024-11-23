@@ -1,0 +1,43 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractAdvisorAutoProxyCreator
+class AbstractAutoProxyCreator
+class AnnotationAwareAspectJAutoProxyCreator
+interface AopInfrastructureBean << interface >>
+class AspectJAwareAdvisorAutoProxyCreator
+interface Aware << interface >>
+interface BeanClassLoaderAware << interface >>
+interface BeanFactoryAware << interface >>
+class BeanNameAutoProxyCreator
+interface BeanPostProcessor << interface >>
+class DefaultAdvisorAutoProxyCreator
+interface InstantiationAwareBeanPostProcessor << interface >>
+interface Ordered << interface >>
+class ProxyConfig
+class ProxyProcessorSupport
+interface Serializable << interface >>
+interface SmartInstantiationAwareBeanPostProcessor << interface >>
+
+AbstractAdvisorAutoProxyCreator           -[#000082,plain]-^  AbstractAutoProxyCreator                 
+AbstractAutoProxyCreator                  -[#008200,dashed]-^  BeanFactoryAware                         
+AbstractAutoProxyCreator                  -[#000082,plain]-^  ProxyProcessorSupport                    
+AbstractAutoProxyCreator                  -[#008200,dashed]-^  SmartInstantiationAwareBeanPostProcessor 
+AnnotationAwareAspectJAutoProxyCreator    -[#000082,plain]-^  AspectJAwareAdvisorAutoProxyCreator      
+AspectJAwareAdvisorAutoProxyCreator       -[#000082,plain]-^  AbstractAdvisorAutoProxyCreator          
+BeanClassLoaderAware                      -[#008200,plain]-^  Aware                                    
+BeanFactoryAware                          -[#008200,plain]-^  Aware                                    
+BeanNameAutoProxyCreator                  -[#000082,plain]-^  AbstractAutoProxyCreator                 
+DefaultAdvisorAutoProxyCreator            -[#000082,plain]-^  AbstractAdvisorAutoProxyCreator          
+DefaultAdvisorAutoProxyCreator            -[#008200,dashed]-^  Aware                                    
+InstantiationAwareBeanPostProcessor       -[#008200,plain]-^  BeanPostProcessor                        
+ProxyConfig                               -[#008200,dashed]-^  Serializable                             
+ProxyProcessorSupport                     -[#008200,dashed]-^  AopInfrastructureBean                    
+ProxyProcessorSupport                     -[#008200,dashed]-^  BeanClassLoaderAware                     
+ProxyProcessorSupport                     -[#008200,dashed]-^  Ordered                                  
+ProxyProcessorSupport                     -[#000082,plain]-^  ProxyConfig                              
+SmartInstantiationAwareBeanPostProcessor  -[#008200,plain]-^  InstantiationAwareBeanPostProcessor      
+@enduml

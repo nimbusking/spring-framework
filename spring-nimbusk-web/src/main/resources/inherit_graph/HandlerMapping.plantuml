@@ -1,0 +1,31 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AbstractDetectingUrlHandlerMapping
+class AbstractHandlerMapping
+class AbstractHandlerMethodMapping<T>
+class AbstractUrlHandlerMapping
+class BeanNameUrlHandlerMapping
+interface HandlerMapping << interface >>
+interface MatchableHandlerMapping << interface >>
+class RequestMappingHandlerMapping
+class RequestMappingInfoHandlerMapping
+class SimpleUrlHandlerMapping
+class WebSocketHandlerMapping
+
+AbstractDetectingUrlHandlerMapping  -[#000082,plain]-^  AbstractUrlHandlerMapping          
+AbstractHandlerMapping              -[#008200,dashed]-^  HandlerMapping                     
+AbstractHandlerMethodMapping        -[#000082,plain]-^  AbstractHandlerMapping             
+AbstractUrlHandlerMapping           -[#000082,plain]-^  AbstractHandlerMapping             
+AbstractUrlHandlerMapping           -[#008200,dashed]-^  MatchableHandlerMapping            
+BeanNameUrlHandlerMapping           -[#000082,plain]-^  AbstractDetectingUrlHandlerMapping 
+MatchableHandlerMapping             -[#008200,plain]-^  HandlerMapping                     
+RequestMappingHandlerMapping        -[#008200,dashed]-^  MatchableHandlerMapping            
+RequestMappingHandlerMapping        -[#000082,plain]-^  RequestMappingInfoHandlerMapping   
+RequestMappingInfoHandlerMapping    -[#000082,plain]-^  AbstractHandlerMethodMapping       
+SimpleUrlHandlerMapping             -[#000082,plain]-^  AbstractUrlHandlerMapping          
+WebSocketHandlerMapping             -[#000082,plain]-^  SimpleUrlHandlerMapping            
+@enduml
